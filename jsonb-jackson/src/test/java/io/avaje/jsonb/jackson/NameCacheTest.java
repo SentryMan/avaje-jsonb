@@ -1,9 +1,9 @@
 package io.avaje.jsonb.jackson;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.fasterxml.jackson.core.io.SerializedString;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class NameCacheTest {
 

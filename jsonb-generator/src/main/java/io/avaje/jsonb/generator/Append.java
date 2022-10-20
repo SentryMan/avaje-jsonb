@@ -3,9 +3,7 @@ package io.avaje.jsonb.generator;
 import java.io.IOException;
 import java.io.Writer;
 
-/**
- * Helper that wraps a writer with some useful methods to append content.
- */
+/** Helper that wraps a writer with some useful methods to append content. */
 class Append {
 
   private final Writer writer;
@@ -18,7 +16,7 @@ class Append {
     try {
       writer.append(content);
       return this;
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new RuntimeException(e);
     }
   }
@@ -27,7 +25,7 @@ class Append {
     try {
       writer.flush();
       writer.close();
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new RuntimeException(e);
     }
   }
@@ -36,16 +34,13 @@ class Append {
     try {
       writer.append("\n");
       return this;
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new RuntimeException(e);
     }
   }
 
-  /**
-   * Append content with formatted arguments.
-   */
+  /** Append content with formatted arguments. */
   Append append(String format, Object... args) {
     return append(String.format(format, args));
   }
-
 }

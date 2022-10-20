@@ -16,9 +16,9 @@ class GenericTypeParser {
   }
 
   GenericType parse() {
-    int len = raw.length();
+    final int len = raw.length();
     for (int i = 0; i < len; i++) {
-      char ch = raw.charAt(i);
+      final char ch = raw.charAt(i);
       processChar(ch);
     }
 
@@ -44,13 +44,13 @@ class GenericTypeParser {
   private void nextParam() {
     endParam();
 
-    GenericType param = new GenericType();
+    final GenericType param = new GenericType();
     stack.peek().addParam(param);
     stack.push(param);
   }
 
   private void endParam() {
-    String content = buf.toString();
+    final String content = buf.toString();
     if (!content.isEmpty()) {
       stack.peek().setMainType(content);
       buf = new StringBuilder();
@@ -62,7 +62,7 @@ class GenericTypeParser {
     stack.peek().setMainType(buf.toString());
     buf = new StringBuilder();
 
-    GenericType param = new GenericType();
+    final GenericType param = new GenericType();
     stack.peek().addParam(param);
     stack.push(param);
   }

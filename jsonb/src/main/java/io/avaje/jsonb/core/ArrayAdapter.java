@@ -18,25 +18,25 @@ package io.avaje.jsonb.core;
 import io.avaje.jsonb.JsonAdapter;
 import io.avaje.jsonb.JsonReader;
 import io.avaje.jsonb.JsonWriter;
-
 import java.lang.reflect.Array;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Converts arrays to JSON arrays containing their converted contents.
- * This supports both primitive and object arrays.
+ * Converts arrays to JSON arrays containing their converted contents. This supports both primitive
+ * and object arrays.
  */
 final class ArrayAdapter extends JsonAdapter<Object> {
-  public static final Factory FACTORY = (type, jsonb) -> {
-    Type elementType = Util.arrayComponentType(type);
-    if (elementType == null) return null;
-    if (elementType == byte.class) return new ByteArray();
-    Class<?> elementClass = Util.rawType(elementType);
-    JsonAdapter<Object> elementAdapter = jsonb.adapter(elementType);
-    return new ArrayAdapter(elementClass, elementAdapter).nullSafe();
-  };
+  public static final Factory FACTORY =
+      (type, jsonb) -> {
+        final Type elementType = Util.arrayComponentType(type);
+        if (elementType == null) return null;
+        if (elementType == byte.class) return new ByteArray();
+        final Class<?> elementClass = Util.rawType(elementType);
+        final JsonAdapter<Object> elementAdapter = jsonb.adapter(elementType);
+        return new ArrayAdapter(elementClass, elementAdapter).nullSafe();
+      };
 
   private final Class<?> elementClass;
   private final JsonAdapter<Object> elementAdapter;
@@ -48,13 +48,13 @@ final class ArrayAdapter extends JsonAdapter<Object> {
 
   @Override
   public Object fromJson(JsonReader reader) {
-    List<Object> list = new ArrayList<>();
+    final List<Object> list = new ArrayList<>();
     reader.beginArray();
     while (reader.hasNextElement()) {
       list.add(elementAdapter.fromJson(reader));
     }
     reader.endArray();
-    Object array = Array.newInstance(elementClass, list.size());
+    final Object array = Array.newInstance(elementClass, list.size());
     for (int i = 0; i < list.size(); i++) {
       Array.set(array, i, list.get(i));
     }

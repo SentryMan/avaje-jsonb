@@ -38,7 +38,6 @@ final class Grisu3 {
   // FastDtoa will produce at most kFastDtoaMaximalLength digits.
   static final int kFastDtoaMaximalLength = 17;
 
-
   // The minimal and maximal target exponent define the range of w's binary
   // exponent, where 'w' is the result of multiplying the input by a cached power
   // of ten.
@@ -76,19 +75,19 @@ final class Grisu3 {
       // However: the resulting number only contains 64 bits. The least
       // significant 64 bits are only used for rounding the most significant 64
       // bits.
-      long a = f >>> 32;
-      long b = f & kM32;
-      long c = other.f >>> 32;
-      long d = other.f & kM32;
-      long ac = a * c;
-      long bc = b * c;
-      long ad = a * d;
-      long bd = b * d;
+      final long a = f >>> 32;
+      final long b = f & kM32;
+      final long c = other.f >>> 32;
+      final long d = other.f & kM32;
+      final long ac = a * c;
+      final long bc = b * c;
+      final long ad = a * d;
+      final long bd = b * d;
       long tmp = (bd >>> 32) + (ad & kM32) + (bc & kM32);
       // By adding 1U << 31 to tmp we round the final result.
       // Halfway cases will be round up.
       tmp += 1L << 31;
-      long result_f = ac + (ad >>> 32) + (bc >>> 32) + (tmp >>> 32);
+      final long result_f = ac + (ad >>> 32) + (bc >>> 32) + (tmp >>> 32);
       e += other.e + 64;
       f = result_f;
     }
@@ -120,12 +119,11 @@ final class Grisu3 {
     public String toString() {
       return "[DiyFp f:" + f + ", e:" + e + "]";
     }
-
   }
 
   private static class CachedPowers {
 
-    static final double kD_1_LOG2_10 = 0.30102999566398114;  //  1 / lg(10)
+    static final double kD_1_LOG2_10 = 0.30102999566398114; //  1 / lg(10)
 
     static class CachedPower {
       final long significand;
@@ -278,17 +276,16 @@ final class Grisu3 {
     static int exponent(long d64) {
       if (isDenormal(d64)) return kDenormalExponent;
 
-      int biased_e = (int) (((d64 & kExponentMask) >>> kSignificandSize) & 0xffffffffL);
+      final int biased_e = (int) ((d64 & kExponentMask) >>> kSignificandSize & 0xffffffffL);
       return biased_e - kExponentBias;
     }
 
     static long significand(long d64) {
-      long significand = d64 & kSignificandMask;
+      final long significand = d64 & kSignificandMask;
       if (!isDenormal(d64)) {
         return significand + kHiddenBit;
-      } else {
-        return significand;
       }
+      return significand;
     }
 
     // Returns true if the double is a denormal.
@@ -301,7 +298,7 @@ final class Grisu3 {
     // exponent as m_plus.
     static void normalizedBoundaries(DiyFp v, long d64, DiyFp m_minus, DiyFp m_plus) {
       asDiyFp(d64, v);
-      final boolean significand_is_zero = (v.f == kHiddenBit);
+      final boolean significand_is_zero = v.f == kHiddenBit;
       m_plus.f = (v.f << 1) + 1;
       m_plus.e = v.e - 1;
       m_plus.normalize();
@@ -318,14 +315,13 @@ final class Grisu3 {
         m_minus.f = (v.f << 1) - 1;
         m_minus.e = v.e - 1;
       }
-      m_minus.f = m_minus.f << (m_minus.e - m_plus.e);
+      m_minus.f = m_minus.f << m_minus.e - m_plus.e;
       m_minus.e = m_plus.e;
     }
 
-    private static final int kSignificandSize = 52;  // Excludes the hidden bit.
+    private static final int kSignificandSize = 52; // Excludes the hidden bit.
     private static final int kExponentBias = 0x3FF + kSignificandSize;
     private static final int kDenormalExponent = -kExponentBias + 1;
-
   }
 
   static class FastDtoa {
@@ -345,12 +341,12 @@ final class Grisu3 {
     //    representable number to the input.
     //  Modifies the generated digits in the buffer to approach (round towards) w.
     static boolean roundWeed(
-      final FastDtoaBuilder buffer,
-      final long distance_too_high_w,
-      final long unsafe_interval,
-      long rest,
-      final long ten_kappa,
-      final long unit) {
+        final FastDtoaBuilder buffer,
+        final long distance_too_high_w,
+        final long unsafe_interval,
+        long rest,
+        final long ten_kappa,
+        final long unit) {
       final long small_distance = distance_too_high_w - unit;
       final long big_distance = distance_too_high_w + unit;
       // Let w_low  = too_high - big_distance, and
@@ -422,10 +418,13 @@ final class Grisu3 {
       //              (buffer{-1} < w_high) && w_high - buffer{-1} > buffer - w_high
       // Instead of using the buffer directly we use its distance to too_high.
       // Conceptually rest ~= too_high - buffer
-      while (rest < small_distance &&  // Negated condition 1
-        unsafe_interval - rest >= ten_kappa &&  // Negated condition 2
-        (rest + ten_kappa < small_distance ||  // buffer{-1} > w_high
-          small_distance - rest >= rest + ten_kappa - small_distance)) {
+      while (rest < small_distance
+          && // Negated condition 1
+          unsafe_interval - rest >= ten_kappa
+          && // Negated condition 2
+          (rest + ten_kappa < small_distance
+              || // buffer{-1} > w_high
+              small_distance - rest >= rest + ten_kappa - small_distance)) {
         buffer.decreaseLast();
         rest += ten_kappa;
       }
@@ -433,10 +432,10 @@ final class Grisu3 {
       // We have approached w+ as much as possible. We now test if approaching w-
       // would require changing the buffer. If yes, then we have two possible
       // representations close to w, but we cannot decide which one is closer.
-      if (rest < big_distance &&
-        unsafe_interval - rest >= ten_kappa &&
-        (rest + ten_kappa < big_distance ||
-          big_distance - rest > rest + ten_kappa - big_distance)) {
+      if (rest < big_distance
+          && unsafe_interval - rest >= ten_kappa
+          && (rest + ten_kappa < big_distance
+              || big_distance - rest > rest + ten_kappa - big_distance)) {
         return false;
       }
 
@@ -445,7 +444,7 @@ final class Grisu3 {
       //   Since too_low = too_high - unsafe_interval this is equivalent to
       //      [too_high - unsafe_interval + 4 ulp; too_high - 2 ulp]
       //   Conceptually we have: rest ~= too_high - buffer
-      return (2 * unit <= rest) && (rest <= unsafe_interval - 4 * unit);
+      return 2 * unit <= rest && rest <= unsafe_interval - 4 * unit;
     }
 
     static final int kTen4 = 10000;
@@ -470,7 +469,7 @@ final class Grisu3 {
             power = kTen9;
             exponent = 9;
             break;
-          }  // else fallthrough
+          } // else fallthrough
         case 29:
         case 28:
         case 27:
@@ -478,7 +477,7 @@ final class Grisu3 {
             power = kTen8;
             exponent = 8;
             break;
-          }  // else fallthrough
+          } // else fallthrough
         case 26:
         case 25:
         case 24:
@@ -486,7 +485,7 @@ final class Grisu3 {
             power = kTen7;
             exponent = 7;
             break;
-          }  // else fallthrough
+          } // else fallthrough
         case 23:
         case 22:
         case 21:
@@ -495,7 +494,7 @@ final class Grisu3 {
             power = kTen6;
             exponent = 6;
             break;
-          }  // else fallthrough
+          } // else fallthrough
         case 19:
         case 18:
         case 17:
@@ -503,7 +502,7 @@ final class Grisu3 {
             power = kTen5;
             exponent = 5;
             break;
-          }  // else fallthrough
+          } // else fallthrough
         case 16:
         case 15:
         case 14:
@@ -511,7 +510,7 @@ final class Grisu3 {
             power = kTen4;
             exponent = 4;
             break;
-          }  // else fallthrough
+          } // else fallthrough
         case 13:
         case 12:
         case 11:
@@ -520,7 +519,7 @@ final class Grisu3 {
             power = 1000;
             exponent = 3;
             break;
-          }  // else fallthrough
+          } // else fallthrough
         case 9:
         case 8:
         case 7:
@@ -528,7 +527,7 @@ final class Grisu3 {
             power = 100;
             exponent = 2;
             break;
-          }  // else fallthrough
+          } // else fallthrough
         case 6:
         case 5:
         case 4:
@@ -536,7 +535,7 @@ final class Grisu3 {
             power = 10;
             exponent = 1;
             break;
-          }  // else fallthrough
+          } // else fallthrough
         case 3:
         case 2:
         case 1:
@@ -544,7 +543,7 @@ final class Grisu3 {
             power = 1;
             exponent = 0;
             break;
-          }  // else fallthrough
+          } // else fallthrough
         case 0:
           power = 0;
           exponent = -1;
@@ -555,7 +554,7 @@ final class Grisu3 {
           exponent = 0;
           // UNREACHABLE();
       }
-      return ((long) power << 32) | (0xffffffffL & exponent);
+      return (long) power << 32 | 0xffffffffL & exponent;
     }
 
     // Generates the digits of input number w.
@@ -640,19 +639,19 @@ final class Grisu3 {
       one.f = 1L << -w.e;
       one.e = w.e;
       // Division by one is a shift.
-      int integrals = (int) ((too_high.f >>> -one.e) & 0xffffffffL);
+      int integrals = (int) (too_high.f >>> -one.e & 0xffffffffL);
       // Modulo by one is an and.
-      long fractionals = too_high.f & (one.f - 1);
-      long result = biggestPowerTen(integrals, DiyFp.kSignificandSize - (-one.e));
-      int divider = (int) ((result >>> 32) & 0xffffffffL);
-      int divider_exponent = (int) (result & 0xffffffffL);
+      long fractionals = too_high.f & one.f - 1;
+      final long result = biggestPowerTen(integrals, DiyFp.kSignificandSize - (-one.e));
+      int divider = (int) (result >>> 32 & 0xffffffffL);
+      final int divider_exponent = (int) (result & 0xffffffffL);
       int kappa = divider_exponent + 1;
       // Loop invariant: buffer = too_high / 10^kappa  (integer division)
       // The invariant holds for the first iteration: kappa has been initialized
       // with the divider exponent + 1. And the divider is the biggest power of ten
       // that is smaller than integrals.
       while (kappa > 0) {
-        int digit = integrals / divider;
+        final int digit = integrals / divider;
         buffer.append((byte) ('0' + digit));
         integrals %= divider;
         kappa--;
@@ -669,9 +668,8 @@ final class Grisu3 {
           minus_round.f = too_high.f;
           minus_round.e = too_high.e;
           minus_round.subtract(w);
-          return roundWeed(buffer, minus_round.f,
-            unsafe_interval.f, rest,
-            (long) divider << -one.e, unit);
+          return roundWeed(
+              buffer, minus_round.f, unsafe_interval.f, rest, (long) divider << -one.e, unit);
         }
         divider /= 10;
       }
@@ -694,13 +692,13 @@ final class Grisu3 {
         fractionals *= 5;
         unit *= 5;
         unsafe_interval.f = unsafe_interval.f * 5;
-        unsafe_interval.e = unsafe_interval.e + 1;  // Will be optimized out.
+        unsafe_interval.e = unsafe_interval.e + 1; // Will be optimized out.
         one.f = one.f >>> 1;
         one.e = one.e + 1;
         // Integer division by one.
-        final int digit = (int) ((fractionals >>> -one.e) & 0xffffffffL);
+        final int digit = (int) (fractionals >>> -one.e & 0xffffffffL);
         buffer.append((byte) ('0' + digit));
-        fractionals &= one.f - 1;  // Modulo by one.
+        fractionals &= one.f - 1; // Modulo by one.
         kappa--;
         if (fractionals < unsafe_interval.f) {
           buffer.point = buffer.end - mk + kappa;
@@ -708,8 +706,8 @@ final class Grisu3 {
           minus_round.f = too_high.f;
           minus_round.e = too_high.e;
           minus_round.subtract(w);
-          return roundWeed(buffer, minus_round.f * unit,
-            unsafe_interval.f, fractionals, one.f, unit);
+          return roundWeed(
+              buffer, minus_round.f * unit, unsafe_interval.f, fractionals, one.f, unit);
         }
       }
     }
@@ -750,9 +748,8 @@ final class Grisu3 {
     if (FastDtoa.digitGen(buffer, mk)) {
       buffer.write(firstDigit);
       return true;
-    } else {
-      return false;
     }
+    return false;
   }
 
   static class FastDtoaBuilder {
@@ -782,7 +779,9 @@ final class Grisu3 {
       boundary_plus.reset();
       DoubleHelper.normalizedBoundaries(v, bits, boundary_minus, boundary_plus);
       ten_mk.reset(); // Cached power of ten: 10^-k
-      final int mk = CachedPowers.getCachedPower(w.e + DiyFp.kSignificandSize, minimal_target_exponent, ten_mk);
+      final int mk =
+          CachedPowers.getCachedPower(
+              w.e + DiyFp.kSignificandSize, minimal_target_exponent, ten_mk);
       // Note that ten_mk is only an approximation of 10^-k. A DiyFp only contains a
       // 64 bit significand and ten_mk is thus only precise up to 64 bits.
 
@@ -841,7 +840,7 @@ final class Grisu3 {
 
     public void write(int firstDigit) {
       // check for minus sign
-      int decPoint = point - firstDigit;
+      final int decPoint = point - firstDigit;
       if (decPoint < -5 || decPoint > 21) {
         toExponentialFormat(firstDigit, decPoint);
       } else {
@@ -868,23 +867,21 @@ final class Grisu3 {
           chars[firstDigit] = '0';
           chars[firstDigit + 1] = '.';
           if (decPoint < 0) {
-            int target = firstDigit + 2 - decPoint;
+            final int target = firstDigit + 2 - decPoint;
             for (int i = firstDigit + 2; i < target; i++) {
               chars[i] = '0';
             }
           }
           end += 2 - decPoint;
         }
-      } else if (point > end) {
-        // large integer, add trailing zeroes
-        for (int i = end; i < point; i++) {
-          chars[i] = '0';
-        }
-        end += point - end;
-        chars[end] = '.';
-        chars[end + 1] = '0';
-        end += 2;
       } else {
+        if (point > end) {
+          // large integer, add trailing zeroes
+          for (int i = end; i < point; i++) {
+            chars[i] = '0';
+          }
+          end += point - end;
+        }
         chars[end] = '.';
         chars[end + 1] = '0';
         end += 2;
@@ -894,7 +891,7 @@ final class Grisu3 {
     private void toExponentialFormat(int firstDigit, int decPoint) {
       if (end - firstDigit > 1) {
         // insert decimal point if more than one digit was produced
-        int dot = firstDigit + 1;
+        final int dot = firstDigit + 1;
         System.arraycopy(chars, dot, chars, dot + 1, end - dot);
         chars[dot] = '.';
         end++;
@@ -912,12 +909,13 @@ final class Grisu3 {
       end = charPos + 1;
 
       do {
-        int r = exp % 10;
-        chars[charPos--] = digits[r];
+        final int r = exp % 10;
+        chars[charPos] = digits[r];
+        charPos--;
         exp = exp / 10;
       } while (exp != 0);
     }
 
-    final static byte[] digits = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
+    static final byte[] digits = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
   }
 }

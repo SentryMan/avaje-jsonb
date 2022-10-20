@@ -1,6 +1,10 @@
 package io.avaje.jsonb.generator;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 class ComponentMetaData {
 
@@ -12,9 +16,7 @@ class ComponentMetaData {
     return allTypes.toString();
   }
 
-  /**
-   * Ensure the component name has been initialised.
-   */
+  /** Ensure the component name has been initialised. */
   void initialiseFullName() {
     fullName();
   }
@@ -50,12 +52,10 @@ class ComponentMetaData {
     return allTypes;
   }
 
-  /**
-   * Return the package imports for the JsonAdapters and related types.
-   */
+  /** Return the package imports for the JsonAdapters and related types. */
   Collection<String> allImports() {
-    Set<String> packageImports = new TreeSet<>();
-    for (String adapterFullName : allTypes) {
+    final Set<String> packageImports = new TreeSet<>();
+    for (final String adapterFullName : allTypes) {
       packageImports.add(Util.packageOf(adapterFullName) + ".*");
       packageImports.add(Util.baseTypeOfAdapter(adapterFullName));
     }

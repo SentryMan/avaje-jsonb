@@ -6,7 +6,6 @@ import com.fasterxml.jackson.core.TreeNode;
 import io.avaje.jsonb.JsonIoException;
 import io.avaje.jsonb.JsonReader;
 import io.avaje.jsonb.spi.PropertyNames;
-
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -31,7 +30,7 @@ final class JacksonReader implements JsonReader {
   public void close() {
     try {
       parser.close();
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new JsonIoException(e);
     }
   }
@@ -39,7 +38,8 @@ final class JacksonReader implements JsonReader {
   @Override
   public void unmappedField(String fieldName) {
     if (failOnUnknown) {
-      throw new IllegalStateException("Unknown property " + fieldName + " at " + parser.getCurrentLocation());
+      throw new IllegalStateException(
+          "Unknown property " + fieldName + " at " + parser.getCurrentLocation());
     }
   }
 
@@ -47,7 +47,7 @@ final class JacksonReader implements JsonReader {
   public void skipValue() {
     try {
       parser.skipChildren();
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new JsonIoException(e);
     }
   }
@@ -55,9 +55,9 @@ final class JacksonReader implements JsonReader {
   @Override
   public String readRaw() {
     try {
-      TreeNode tree = parser.getCodec().readTree(parser);
+      final TreeNode tree = parser.getCodec().readTree(parser);
       return tree.toString();
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new JsonIoException(e);
     }
   }
@@ -74,15 +74,13 @@ final class JacksonReader implements JsonReader {
       if (streamArray && parser.currentToken() == null) {
         parser.nextToken();
       }
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new JsonIoException(e);
     }
   }
 
   @Override
-  public void endStream() {
-
-  }
+  public void endStream() {}
 
   @Override
   public void beginArray() {
@@ -90,23 +88,21 @@ final class JacksonReader implements JsonReader {
       if (parser.currentToken() == null) {
         parser.nextToken();
       }
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new JsonIoException(e);
     }
   }
 
   @Override
-  public void endArray() {
-
-  }
+  public void endArray() {}
 
   @Override
   public boolean hasNextElement() {
     try {
-      JsonToken token = parser.nextToken();
+      final JsonToken token = parser.nextToken();
       // token can be null when streaming new line delimited content
       return token != null && token != JsonToken.END_ARRAY;
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new JsonIoException(e);
     }
   }
@@ -120,7 +116,7 @@ final class JacksonReader implements JsonReader {
   public boolean hasNextField() {
     try {
       return parser.nextToken() == JsonToken.FIELD_NAME;
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new JsonIoException(e);
     }
   }
@@ -128,11 +124,11 @@ final class JacksonReader implements JsonReader {
   @Override
   public String nextField() {
     try {
-      String nextName = parser.getCurrentName();
+      final String nextName = parser.getCurrentName();
       // move to next token
       parser.nextToken();
       return nextName;
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new JsonIoException(e);
     }
   }
@@ -146,7 +142,7 @@ final class JacksonReader implements JsonReader {
   public boolean readBoolean() {
     try {
       return parser.getValueAsBoolean();
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new JsonIoException(e);
     }
   }
@@ -155,7 +151,7 @@ final class JacksonReader implements JsonReader {
   public int readInt() {
     try {
       return parser.getValueAsInt();
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new JsonIoException(e);
     }
   }
@@ -164,7 +160,7 @@ final class JacksonReader implements JsonReader {
   public BigDecimal readDecimal() {
     try {
       return parser.getDecimalValue();
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new JsonIoException(e);
     }
   }
@@ -173,7 +169,7 @@ final class JacksonReader implements JsonReader {
   public BigInteger readBigInteger() {
     try {
       return parser.getBigIntegerValue();
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new JsonIoException(e);
     }
   }
@@ -182,7 +178,7 @@ final class JacksonReader implements JsonReader {
   public long readLong() {
     try {
       return parser.getValueAsLong();
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new JsonIoException(e);
     }
   }
@@ -191,7 +187,7 @@ final class JacksonReader implements JsonReader {
   public double readDouble() {
     try {
       return parser.getValueAsDouble();
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new JsonIoException(e);
     }
   }
@@ -200,7 +196,7 @@ final class JacksonReader implements JsonReader {
   public String readString() {
     try {
       return parser.getValueAsString();
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new JsonIoException(e);
     }
   }
@@ -209,7 +205,7 @@ final class JacksonReader implements JsonReader {
   public byte[] readBinary() {
     try {
       return parser.getBinaryValue();
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new JsonIoException(e);
     }
   }
@@ -221,9 +217,13 @@ final class JacksonReader implements JsonReader {
     }
     try {
       if (parser.nextToken() != JsonToken.START_OBJECT) {
-        throw new IllegalStateException("Expected start object " + parser.getCurrentLocation() + " but got " + parser.currentToken());
+        throw new IllegalStateException(
+            "Expected start object "
+                + parser.getCurrentLocation()
+                + " but got "
+                + parser.currentToken());
       }
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new JsonIoException(e);
     }
   }
@@ -231,7 +231,11 @@ final class JacksonReader implements JsonReader {
   @Override
   public void endObject() {
     if (parser.currentToken() != JsonToken.END_OBJECT) {
-      throw new IllegalStateException("Expected end object " + parser.getCurrentLocation() + " but got " + parser.currentToken());
+      throw new IllegalStateException(
+          "Expected end object "
+              + parser.getCurrentLocation()
+              + " but got "
+              + parser.currentToken());
     }
   }
 
@@ -241,7 +245,7 @@ final class JacksonReader implements JsonReader {
     if (token == null) {
       try {
         token = parser.nextToken();
-      } catch (IOException e) {
+      } catch (final IOException e) {
         throw new JsonIoException(e);
       }
     }

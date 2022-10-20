@@ -5,130 +5,89 @@ import java.io.Flushable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-/**
- * Generate JSON content.
- */
+/** Generate JSON content. */
 interface JsonGenerator extends Closeable, Flushable {
 
-  /**
-   * Enable or disable pretty json formatting.
-   */
+  /** Enable or disable pretty json formatting. */
   void pretty(boolean pretty);
 
-  /**
-   * Write start of an ARRAY.
-   */
+  /** Write start of an ARRAY. */
   void startArray();
 
-  /**
-   * Write end of an ARRAY.
-   */
+  /** Write end of an ARRAY. */
   void endArray();
 
-  /**
-   * Write start of an OBJECT.
-   */
+  /** Write start of an OBJECT. */
   void startObject();
 
-  /**
-   * Write end of an OBJECT.
-   */
+  /** Write end of an OBJECT. */
   void endObject();
 
   /**
    * Set the already encoded and escaped names that can be used via {@link #writeName(int)}.
-   * <p>
-   * These names should be used for all json generation for this generator and set once
-   * rather than set per object via {@link #names(JsonNames)}.
+   *
+   * <p>These names should be used for all json generation for this generator and set once rather
+   * than set per object via {@link #names(JsonNames)}.
    */
   void allNames(JsonNames names);
 
   /**
    * Set the already encoded and escaped names that can be used via {@link #writeName(int)}.
-   * <p>
-   * This is expected to be called per object after each call to  {@link #startObject()}.
+   *
+   * <p>This is expected to be called per object after each call to {@link #startObject()}.
    */
   void names(JsonNames nextNames);
 
   /**
-   * Set the next property name to write by position. This uses the already encoded
-   * name values of JsonNames.
+   * Set the next property name to write by position. This uses the already encoded name values of
+   * JsonNames.
    */
   void writeName(int namePos);
 
-  /**
-   * Write a field name.
-   */
+  /** Write a field name. */
   void writeName(String name);
 
-  /**
-   * Write null value.
-   */
+  /** Write null value. */
   void writeNull();
 
-  /**
-   * Write a boolean value.
-   */
+  /** Write a boolean value. */
   void write(boolean value);
 
-  /**
-   * Write an int value.
-   */
+  /** Write an int value. */
   void write(int value);
 
-  /**
-   * Write a long value.
-   */
+  /** Write a long value. */
   void write(long value);
 
-  /**
-   * Write a double value.
-   */
+  /** Write a double value. */
   void write(double value);
 
-  /**
-   * Write a BigInteger value.
-   */
+  /** Write a BigInteger value. */
   void write(BigInteger value);
 
-  /**
-   * Write a BigDecimal value.
-   */
+  /** Write a BigDecimal value. */
   void write(BigDecimal value);
 
-  /**
-   * Write a String value.
-   */
+  /** Write a String value. */
   void write(String value);
 
-  /**
-   * Write a binary value as base64.
-   */
+  /** Write a binary value as base64. */
   void write(byte[] value);
 
-  /**
-   * Write raw content that is assumed to be valid json.
-   */
+  /** Write raw content that is assumed to be valid json. */
   void writeRaw(String value);
 
-  /**
-   * Write a new line. This is typically used when support line delimited x-json-stream content.
-   */
+  /** Write a new line. This is typically used when support line delimited x-json-stream content. */
   void writeNewLine();
 
-  /**
-   * Flush the content.
-   */
+  /** Flush the content. */
+  @Override
   void flush();
 
-  /**
-   * Close the generator.
-   */
+  /** Close the generator. */
+  @Override
   void close();
 
-  /**
-   * Return the underlying content as bytes.
-   */
+  /** Return the underlying content as bytes. */
   byte[] toByteArray();
-
 }

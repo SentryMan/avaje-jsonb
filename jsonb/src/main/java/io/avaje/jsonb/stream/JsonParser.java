@@ -4,142 +4,96 @@ import java.io.Closeable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-/**
- * Parse JSON content.
- */
+/** Parse JSON content. */
 interface JsonParser extends Closeable {
 
   /**
-   * Set the current object names that can are "prepared" and can be used
-   * to optimise the reading of <code>nextField()</code>.
-   * <p>
-   * Using this means that the parser can lookup the name allowing it to skip
-   * reading the name as chars and creating a string instance.
+   * Set the current object names that can are "prepared" and can be used to optimise the reading of
+   * <code>nextField()</code>.
+   *
+   * <p>Using this means that the parser can lookup the name allowing it to skip reading the name as
+   * chars and creating a string instance.
    */
   void names(JsonNames names);
 
-  /**
-   * Return the current token.
-   */
+  /** Return the current token. */
   byte currentToken();
 
-  /**
-   * Return the next token.
-   */
+  /** Return the next token. */
   byte nextToken();
 
   /**
-   * Return true if there is a next element of an ARRAY or stream.
-   * Support x-json-stream new line delimited json.
+   * Return true if there is a next element of an ARRAY or stream. Support x-json-stream new line
+   * delimited json.
    */
   boolean hasNextElement();
 
-  /**
-   * Read and return the field name.
-   */
+  /** Read and return the field name. */
   String nextField();
 
-  /**
-   * Start a stream which could be an ARRAY or x-json-stream new line delimited json.
-   */
+  /** Start a stream which could be an ARRAY or x-json-stream new line delimited json. */
   void startStream();
 
-  /**
-   * End a stream which could be an ARRAY or x-json-stream new line delimited json.
-   */
+  /** End a stream which could be an ARRAY or x-json-stream new line delimited json. */
   void endStream();
 
-  /**
-   * Read the start of an ARRAY.
-   */
+  /** Read the start of an ARRAY. */
   void startArray();
 
-  /**
-   * Read the end of an ARRAY.
-   */
+  /** Read the end of an ARRAY. */
   void endArray();
 
-  /**
-   * Read the start of an OBJECT.
-   */
+  /** Read the start of an OBJECT. */
   void startObject();
 
-  /**
-   * Read the end of an OBJECT.
-   */
+  /** Read the end of an OBJECT. */
   void endObject();
 
   /**
    * Skip reading the current value.
-   * <p>
-   * This is typically use when we have read <code>nextField()</code>
-   * and deemed that we are not interested in the value for that field.
+   *
+   * <p>This is typically use when we have read <code>nextField()</code> and deemed that we are not
+   * interested in the value for that field.
    */
   void skipValue();
 
-  /**
-   * Return true if the value to be read is NULL.
-   */
+  /** Return true if the value to be read is NULL. */
   boolean isNullValue();
 
-  /**
-   * Read and return an int value.
-   */
+  /** Read and return an int value. */
   int readInt();
 
-  /**
-   * Read and return a long value.
-   */
+  /** Read and return a long value. */
   long readLong();
 
-  /**
-   * Read and return a short value.
-   */
+  /** Read and return a short value. */
   short readShort();
 
-  /**
-   * Read and return a double value.
-   */
+  /** Read and return a double value. */
   double readDouble();
 
-  /**
-   * Read and return a BigDecimal value.
-   */
+  /** Read and return a BigDecimal value. */
   BigDecimal readDecimal();
 
-  /**
-   * Read and return a BigInteger value.
-   */
+  /** Read and return a BigInteger value. */
   BigInteger readBigInteger();
 
-  /**
-   * Read and return a boolean value.
-   */
+  /** Read and return a boolean value. */
   boolean readBoolean();
 
-  /**
-   * Read and return a String value.
-   */
+  /** Read and return a String value. */
   String readString();
 
-  /**
-   * Read and return a binary value from base64.
-   */
+  /** Read and return a binary value from base64. */
   byte[] readBinary();
 
-  /**
-   * Read and return raw json content.
-   */
+  /** Read and return raw json content. */
   String readRaw();
 
-  /**
-   * Return the current location. Generally used for reporting errors.
-   */
+  /** Return the current location. Generally used for reporting errors. */
   String location();
 
-  /**
-   * Close the parser.
-   */
+  /** Close the parser. */
+  @Override
   void close();
-
 }

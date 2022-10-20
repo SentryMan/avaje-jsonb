@@ -23,9 +23,9 @@ final class ViewDsl {
 
   void push(String key) {
     stack.push(current);
-    Entry nested = current.nested(key);
+    final Entry nested = current.nested(key);
     if (nested == null) {
-      throw new IllegalStateException("nest property "+key+" not found?");
+      throw new IllegalStateException("nest property " + key + " not found?");
     }
     current = nested;
   }

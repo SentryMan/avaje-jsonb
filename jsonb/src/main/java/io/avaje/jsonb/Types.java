@@ -16,7 +16,6 @@
 package io.avaje.jsonb;
 
 import io.avaje.jsonb.core.Util;
-
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
@@ -24,39 +23,29 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
-/**
- * Factory methods for types.
- */
+/** Factory methods for types. */
 public class Types {
 
   private Types() {
     // hide
   }
 
-  /**
-   * Returns an array type whose elements are all instances of {@code componentType}.
-   */
+  /** Returns an array type whose elements are all instances of {@code componentType}. */
   public static Type arrayOf(Type elementType) {
     return Util.arrayOf(elementType);
   }
 
-  /**
-   * Returns a Type that is a List of the given element type.
-   */
+  /** Returns a Type that is a List of the given element type. */
   public static Type listOf(Type elementType) {
     return newParameterizedType(List.class, elementType);
   }
 
-  /**
-   * Returns a Type that is a Set of the given element type.
-   */
+  /** Returns a Type that is a Set of the given element type. */
   public static Type setOf(Type elementType) {
     return newParameterizedType(Set.class, elementType);
   }
 
-  /**
-   * Returns a Type that is a Stream of the given element type.
-   */
+  /** Returns a Type that is a Stream of the given element type. */
   public static Type streamOf(Type elementType) {
     return newParameterizedType(Stream.class, elementType);
   }
@@ -78,5 +67,4 @@ public class Types {
   public static ParameterizedType newParameterizedType(Type rawType, Type... typeArguments) {
     return Util.newParameterizedType(rawType, typeArguments);
   }
-
 }

@@ -2,7 +2,6 @@ package io.avaje.jsonb.stream;
 
 import io.avaje.jsonb.JsonReader;
 import io.avaje.jsonb.spi.PropertyNames;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
@@ -58,15 +57,14 @@ final class JsonReadAdapter implements JsonReader {
 
   @Override
   public boolean hasNextField() {
-    byte nextToken = reader.nextToken();
+    final byte nextToken = reader.nextToken();
     if (nextToken == '"') {
       return true;
     }
     if (nextToken == ',') {
       return reader.nextToken() == '"';
-    } else {
-      return false;
     }
+    return false;
   }
 
   @Override
@@ -126,7 +124,7 @@ final class JsonReadAdapter implements JsonReader {
 
   @Override
   public Token currentToken() {
-    byte token = reader.currentToken();
+    final byte token = reader.currentToken();
     switch (token) {
       case '[':
         return Token.BEGIN_ARRAY;
@@ -137,9 +135,10 @@ final class JsonReadAdapter implements JsonReader {
       case '\"':
         return Token.STRING;
       case 't':
-      case 'f': {
-        return Token.BOOLEAN;
-      }
+      case 'f':
+        {
+          return Token.BOOLEAN;
+        }
       default:
         return Token.NUMBER;
     }

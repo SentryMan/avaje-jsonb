@@ -6,7 +6,6 @@ import io.avaje.jsonb.JsonWriter;
 import io.avaje.jsonb.Jsonb;
 import io.avaje.jsonb.spi.ViewBuilder;
 import io.avaje.jsonb.spi.ViewBuilderAware;
-
 import java.lang.invoke.MethodHandle;
 
 public class ContactJsonAdapter extends JsonAdapter<Contact> implements ViewBuilderAware {
@@ -33,7 +32,8 @@ public class ContactJsonAdapter extends JsonAdapter<Contact> implements ViewBuil
   public void build(ViewBuilder builder, String name, MethodHandle mh) {
     builder.beginObject(name, mh);
     builder.add("id", longAdapter, builder.method(Contact.class, "id", Long.class));
-    builder.add("firstName", stringAdapter, builder.method(Contact.class, "firstName", String.class));
+    builder.add(
+        "firstName", stringAdapter, builder.method(Contact.class, "firstName", String.class));
     builder.add("lastName", stringAdapter, builder.method(Contact.class, "lastName", String.class));
     builder.endObject();
   }
@@ -61,26 +61,29 @@ public class ContactJsonAdapter extends JsonAdapter<Contact> implements ViewBuil
     while (reader.hasNextField()) {
       String fieldName = reader.nextField();
       switch (fieldName) {
-        case "id": {
-          id = longAdapter.fromJson(reader);
-          break;
-        }
-        case "firstName": {
-          firstName = stringAdapter.fromJson(reader);
-          break;
-        }
-        case "lastName": {
-          lastName = stringAdapter.fromJson(reader);
-          break;
-        }
-        default: {
-          throw new IllegalStateException("fieldName " + fieldName + " not found ");
-        }
+        case "id":
+          {
+            id = longAdapter.fromJson(reader);
+            break;
+          }
+        case "firstName":
+          {
+            firstName = stringAdapter.fromJson(reader);
+            break;
+          }
+        case "lastName":
+          {
+            lastName = stringAdapter.fromJson(reader);
+            break;
+          }
+        default:
+          {
+            throw new IllegalStateException("fieldName " + fieldName + " not found ");
+          }
       }
     }
     reader.endObject();
 
     return new Contact(id, firstName, lastName);
   }
-
 }

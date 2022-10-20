@@ -1,11 +1,10 @@
 package io.avaje.jsonb.stream;
 
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class JParserTest {
 
@@ -17,9 +16,9 @@ class JParserTest {
 
   @Test
   void readRaw_when_bytes() {
-    JParser parser = newParser(1000);
+    final JParser parser = newParser(1000);
 
-    String content = "{\"id\":43, \"content\":\"my-content\"}";
+    final String content = "{\"id\":43, \"content\":\"my-content\"}";
     initParserViaByteArray(parser, content);
 
     assertThat(parser.nextField()).isEqualTo("content");
@@ -28,10 +27,10 @@ class JParserTest {
 
   @Test
   void readRaw_when_bytes_inputExceedsBuffer() {
-    JParser parser = newParser(100);
+    final JParser parser = newParser(100);
 
-    String raw = createLargeContent();
-    String content = "{\"id\":43, \"content\":" + raw + "}";
+    final String raw = createLargeContent();
+    final String content = "{\"id\":43, \"content\":" + raw + "}";
     initParserViaByteArray(parser, content);
 
     assertThat(parser.nextField()).isEqualTo("content");
@@ -40,9 +39,9 @@ class JParserTest {
 
   @Test
   void readRaw_when_streaming_notExceedingBuffer() {
-    JParser parser = newParser(1000);
+    final JParser parser = newParser(1000);
 
-    String content = "{\"id\":43, \"content\":\"my-content\"}";
+    final String content = "{\"id\":43, \"content\":\"my-content\"}";
     initParserViaStream(parser, content);
 
     assertThat(parser.nextField()).isEqualTo("content");
@@ -51,21 +50,24 @@ class JParserTest {
 
   @Test
   void readRaw_when_streaming_exceedBuffer() {
-    JParser parser = newParser(100);
+    final JParser parser = newParser(100);
 
-    String content = "{\"id\":43, \"content\":\"this-is-my-content-that-exceeds-buffer-size|this-is-my-content-that-exceeds-buffer-size\"}";
+    final String content =
+        "{\"id\":43, \"content\":\"this-is-my-content-that-exceeds-buffer-size|this-is-my-content-that-exceeds-buffer-size\"}";
     initParserViaStream(parser, content);
 
     assertThat(parser.nextField()).isEqualTo("content");
-    assertThat(parser.readRaw()).isEqualTo("\"this-is-my-content-that-exceeds-buffer-size|this-is-my-content-that-exceeds-buffer-size\"");
+    assertThat(parser.readRaw())
+        .isEqualTo(
+            "\"this-is-my-content-that-exceeds-buffer-size|this-is-my-content-that-exceeds-buffer-size\"");
   }
 
   @Test
   void readRaw_when_streaming_exceedBufferMore() {
-    JParser parser = newParser(100);
+    final JParser parser = newParser(100);
 
-    String raw = createLargeContent();
-    String content = "{\"id\":43, \"content\":" + raw + "}";
+    final String raw = createLargeContent();
+    final String content = "{\"id\":43, \"content\":" + raw + "}";
 
     initParserViaStream(parser, content);
     assertThat(parser.nextField()).isEqualTo("content");
@@ -73,8 +75,8 @@ class JParserTest {
   }
 
   private String createLargeContent() {
-    StringBuilder raw = new StringBuilder("\"begin");
-    String add = "|this-is-my-content-that-exceeds-buffer-size";
+    final StringBuilder raw = new StringBuilder("\"begin");
+    final String add = "|this-is-my-content-that-exceeds-buffer-size";
     for (int i = 0; i < 10; i++) {
       raw.append(add);
     }
@@ -83,7 +85,7 @@ class JParserTest {
   }
 
   private void initParserViaByteArray(JParser parser, String content) {
-    byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
+    final byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
     parser.process(bytes, bytes.length);
     initialReadToContent(parser);
   }
@@ -105,6 +107,14 @@ class JParserTest {
   private JParser newParser(int len) {
     final char[] tmp = new char[len];
     final byte[] buffer = new byte[len];
-    return new JParser(tmp, buffer, buffer.length, errorInfo, doublePrecision, unknownNumbers, maxNumberDigits, maxStringBuffer);
+    return new JParser(
+        tmp,
+        buffer,
+        buffer.length,
+        errorInfo,
+        doublePrecision,
+        unknownNumbers,
+        maxNumberDigits,
+        maxStringBuffer);
   }
 }

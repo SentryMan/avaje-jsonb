@@ -3,7 +3,6 @@ package io.avaje.jsonb.stream;
 import io.avaje.jsonb.JsonDataException;
 import io.avaje.jsonb.JsonEofException;
 import io.avaje.jsonb.JsonIoException;
-
 import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
@@ -15,9 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Formatter;
 
-/**
- * The json parsing implementation.
- */
+/** The json parsing implementation. */
 final class JParser implements JsonParser {
 
   enum ErrorInfo {
@@ -79,7 +76,8 @@ final class JParser implements JsonParser {
 
   private InputStream stream;
   private int readLimit;
-  // always leave some room for reading special stuff, so that buffer contains enough padding for such optimizations
+  // always leave some room for reading special stuff, so that buffer contains enough padding for
+  // such optimizations
   private int bufferLenWithExtraSpace;
 
   private final byte[] originalBuffer;
@@ -96,14 +94,14 @@ final class JParser implements JsonParser {
   private final int maxStringBuffer;
 
   JParser(
-    final char[] tmp,
-    final byte[] buffer,
-    final int length,
-    final ErrorInfo errorInfo,
-    final DoublePrecision doublePrecision,
-    final UnknownNumberParsing unknownNumbers,
-    final int maxNumberDigits,
-    final int maxStringBuffer) {
+      final char[] tmp,
+      final byte[] buffer,
+      final int length,
+      final ErrorInfo errorInfo,
+      final DoublePrecision doublePrecision,
+      final UnknownNumberParsing unknownNumbers,
+      final int maxNumberDigits,
+      final int maxStringBuffer) {
     this.tmp = tmp;
     this.buffer = buffer;
     this.length = length;
@@ -120,8 +118,8 @@ final class JParser implements JsonParser {
   }
 
   /**
-   * Reset reader after processing input
-   * It will release reference to provided byte[] or InputStream input
+   * Reset reader after processing input It will release reference to provided byte[] or InputStream
+   * input
    */
   @Override
   public void close() {
@@ -136,9 +134,8 @@ final class JParser implements JsonParser {
   }
 
   /**
-   * Bind input stream for processing.
-   * Stream will be processed in byte[] chunks.
-   * If stream is null, reference to stream will be released.
+   * Bind input stream for processing. Stream will be processed in byte[] chunks. If stream is null,
+   * reference to stream will be released.
    */
   public JParser process(final InputStream newStream) {
     nameStack.clear();
@@ -155,9 +152,9 @@ final class JParser implements JsonParser {
   }
 
   /**
-   * Bind byte[] buffer for processing.
-   * If this method is used in combination with process(InputStream) this buffer will be used for processing chunks of stream.
-   * If null is sent for byte[] buffer, new length for valid input will be set for existing buffer.
+   * Bind byte[] buffer for processing. If this method is used in combination with
+   * process(InputStream) this buffer will be used for processing chunks of stream. If null is sent
+   * for byte[] buffer, new length for valid input will be set for existing buffer.
    *
    * @param newBuffer new buffer to use for processing
    * @param newLength length of buffer which can be used
@@ -186,9 +183,7 @@ final class JParser implements JsonParser {
     currentNames = names;
   }
 
-  /**
-   * Valid length of the input buffer.
-   */
+  /** Valid length of the input buffer. */
   int length() {
     return length;
   }
@@ -202,11 +197,12 @@ final class JParser implements JsonParser {
     try {
       int read;
       int position = offset;
-      while (position < buffer.length && (read = stream.read(buffer, position, buffer.length - position)) != -1) {
+      while (position < buffer.length
+          && (read = stream.read(buffer, position, buffer.length - position)) != -1) {
         position += read;
       }
       return position;
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new JsonIoException(e);
     }
   }
@@ -221,8 +217,7 @@ final class JParser implements JsonParser {
   private static final EOFException eof = new EmptyEOFException();
 
   /**
-   * Read next byte from the JSON input.
-   * If buffer has been read in full IOException will be thrown
+   * Read next byte from the JSON input. If buffer has been read in full IOException will be thrown
    *
    * @return next byte
    */
@@ -271,8 +266,8 @@ final class JParser implements JsonParser {
   }
 
   /**
-   * Which was last byte read from the JSON input.
-   * JsonReader doesn't allow to go back, but it remembers previously read byte
+   * Which was last byte read from the JSON input. JsonReader doesn't allow to go back, but it
+   * remembers previously read byte
    *
    * @return which was the last byte read
    */
@@ -292,22 +287,22 @@ final class JParser implements JsonParser {
     error.append("at position: ").append(positionInStream(offset));
     if (currentIndex > offset) {
       try {
-        int maxLen = Math.min(currentIndex - offset, 20);
-        String prefix = new String(buffer, currentIndex - offset - maxLen, maxLen, utf8);
+        final int maxLen = Math.min(currentIndex - offset, 20);
+        final String prefix = new String(buffer, currentIndex - offset - maxLen, maxLen, utf8);
         error.append(", following: `");
         error.append(prefix);
         error.append('`');
-      } catch (Exception ignore) {
+      } catch (final Exception ignore) {
       }
     }
     if (currentIndex - offset < readLimit) {
       try {
-        int maxLen = Math.min(readLimit - currentIndex + offset, 20);
-        String suffix = new String(buffer, currentIndex - offset, maxLen, utf8);
+        final int maxLen = Math.min(readLimit - currentIndex + offset, 20);
+        final String suffix = new String(buffer, currentIndex - offset, maxLen, utf8);
         error.append(", before: `");
         error.append(suffix);
         error.append('`');
-      } catch (Exception ignore) {
+      } catch (final Exception ignore) {
       }
     }
   }
@@ -322,7 +317,8 @@ final class JParser implements JsonParser {
     int ci = currentIndex;
     byte bb = last;
     while (ci < length) {
-      bb = buffer[ci++];
+      bb = buffer[ci];
+      ci++;
       if (bb == ',' || bb == '}' || bb == ']') break;
       i++;
     }
@@ -333,7 +329,8 @@ final class JParser implements JsonParser {
 
   char[] prepareBuffer(final int start, final int len) {
     if (len > maxNumberDigits) {
-      throw newParseErrorWith("Too many digits detected in number", len, "Too many digits detected in number", len, "");
+      throw newParseErrorWith(
+          "Too many digits detected in number", len, "Too many digits detected in number", len, "");
     }
     while (chars.length < len) {
       chars = Arrays.copyOf(chars, chars.length * 2);
@@ -363,8 +360,8 @@ final class JParser implements JsonParser {
   }
 
   /**
-   * Read simple "ascii string" into temporary buffer.
-   * String length must be obtained through getTokenStart and getCurrentToken
+   * Read simple "ascii string" into temporary buffer. String length must be obtained through
+   * getTokenStart and getCurrentToken
    *
    * @return temporary buffer
    */
@@ -373,11 +370,12 @@ final class JParser implements JsonParser {
     int ci = tokenStart = currentIndex;
     try {
       for (int i = 0; i < tmp.length; i++) {
-        final byte bb = buffer[ci++];
+        final byte bb = buffer[ci];
+        ci++;
         if (bb == '"') break;
         tmp[i] = (char) bb;
       }
-    } catch (ArrayIndexOutOfBoundsException ignore) {
+    } catch (final ArrayIndexOutOfBoundsException ignore) {
       throw newParseErrorAt("JSON string was not closed with a double quote", 0);
     }
     if (ci > length) throw newParseErrorAt("JSON string was not closed with a double quote", 0);
@@ -419,31 +417,31 @@ final class JParser implements JsonParser {
   public boolean readBoolean() {
     if (wasTrue()) {
       return true;
-    } else if (wasFalse()) {
+    }
+    if (wasFalse()) {
       return false;
     }
     throw newParseErrorAt("Found invalid boolean value", 0);
   }
 
   /**
-   * Read string from JSON input.
-   * If values cache is used, string will be looked up from the cache.
-   * <p>
-   * String value must start and end with a double quote (").
+   * Read string from JSON input. If values cache is used, string will be looked up from the cache.
+   *
+   * <p>String value must start and end with a double quote (").
    *
    * @return parsed string
    */
   @Override
   public String readString() {
     final int len = parseString();
-    //return valuesCache == null ? new String(chars, 0, len) : valuesCache.get(chars, len);
+    // return valuesCache == null ? new String(chars, 0, len) : valuesCache.get(chars, len);
     return new String(chars, 0, len);
   }
 
   int parseString() {
     final int startIndex = currentIndex;
     if (last != '"') throw newParseError("Expecting '\"' for string start");
-    else if (currentIndex == length) throw newParseErrorAt("Premature end of JSON string", 0);
+    if (currentIndex == length) throw newParseErrorAt("Premature end of JSON string", 0);
 
     byte bb;
     int ci = currentIndex;
@@ -452,7 +450,8 @@ final class JParser implements JsonParser {
     int _tmpLen = Math.min(_tmp.length, remaining);
     int i = 0;
     while (i < _tmpLen) {
-      bb = buffer[ci++];
+      bb = buffer[ci];
+      ci++;
       if (bb == '"') {
         currentIndex = ci;
         return i;
@@ -513,10 +512,11 @@ final class JParser implements JsonParser {
           case '\\':
             break;
           case 'u':
-            bc = (hexToInt(buffer[currentIndex++]) << 12) +
-              (hexToInt(buffer[currentIndex++]) << 8) +
-              (hexToInt(buffer[currentIndex++]) << 4) +
-              hexToInt(buffer[currentIndex++]);
+            bc =
+                (hexToInt(buffer[currentIndex++]) << 12)
+                    + (hexToInt(buffer[currentIndex++]) << 8)
+                    + (hexToInt(buffer[currentIndex++]) << 4)
+                    + hexToInt(buffer[currentIndex++]);
             break;
 
           default:
@@ -540,12 +540,11 @@ final class JParser implements JsonParser {
             bc = ((bc & 0x0F) << 12) + ((u2 & 0x3F) << 6) + (u3 & 0x3F);
           } else {
             final int u4 = buffer[currentIndex++];
-            if ((bc & 0xF8) == 0xF0) {
-              bc = ((bc & 0x07) << 18) + ((u2 & 0x3F) << 12) + ((u3 & 0x3F) << 6) + (u4 & 0x3F);
-            } else {
+            if ((bc & 0xF8) != 0xF0) {
               // there are legal 5 & 6 byte combinations, but none are _valid_
               throw newParseErrorAt("Invalid unicode character detected", 0);
             }
+            bc = ((bc & 0x07) << 18) + ((u2 & 0x3F) << 12) + ((u3 & 0x3F) << 6) + (u4 & 0x3F);
 
             if (bc >= 0x10000) {
               // check if valid unicode
@@ -570,7 +569,8 @@ final class JParser implements JsonParser {
         _tmpLen = _tmp.length;
       }
 
-      _tmp[soFar++] = (char) bc;
+      _tmp[soFar] = (char) bc;
+      soFar++;
     }
     throw newParseErrorAt("JSON string was not closed with a double quote", 0);
   }
@@ -593,48 +593,51 @@ final class JParser implements JsonParser {
       case -96:
         return true;
       case -31:
-        if (currentIndex + 1 < length && buffer[currentIndex] == -102 && buffer[currentIndex + 1] == -128) {
+        if (currentIndex + 1 < length
+            && buffer[currentIndex] == -102
+            && buffer[currentIndex + 1] == -128) {
           currentIndex += 2;
           last = ' ';
           return true;
         }
         return false;
       case -30:
-        if (currentIndex + 1 < length) {
-          final byte b1 = buffer[currentIndex];
-          final byte b2 = buffer[currentIndex + 1];
-          if (b1 == -127 && b2 == -97) {
+        if (currentIndex + 1 >= length) {
+          return false;
+        }
+        final byte b1 = buffer[currentIndex];
+        final byte b2 = buffer[currentIndex + 1];
+        if (b1 == -127 && b2 == -97) {
+          currentIndex += 2;
+          last = ' ';
+          return true;
+        }
+        if (b1 != -128) return false;
+        switch (b2) {
+          case -128:
+          case -127:
+          case -126:
+          case -125:
+          case -124:
+          case -123:
+          case -122:
+          case -121:
+          case -120:
+          case -119:
+          case -118:
+          case -88:
+          case -87:
+          case -81:
             currentIndex += 2;
             last = ' ';
             return true;
-          }
-          if (b1 != -128) return false;
-          switch (b2) {
-            case -128:
-            case -127:
-            case -126:
-            case -125:
-            case -124:
-            case -123:
-            case -122:
-            case -121:
-            case -120:
-            case -119:
-            case -118:
-            case -88:
-            case -87:
-            case -81:
-              currentIndex += 2;
-              last = ' ';
-              return true;
-            default:
-              return false;
-          }
-        } else {
-          return false;
+          default:
+            return false;
         }
       case -29:
-        if (currentIndex + 1 < length && buffer[currentIndex] == -128 && buffer[currentIndex + 1] == -128) {
+        if (currentIndex + 1 < length
+            && buffer[currentIndex] == -128
+            && buffer[currentIndex + 1] == -128) {
           currentIndex += 2;
           last = ' ';
           return true;
@@ -651,21 +654,21 @@ final class JParser implements JsonParser {
       return false;
     }
     try {
-      byte nextToken = nextToken();
+      final byte nextToken = nextToken();
       if (nextToken == ',') {
         nextToken();
         return true;
       }
       return nextToken != ']';
-    } catch (JsonEofException e) {
+    } catch (final JsonEofException e) {
       // expected when streaming new line delimited content with trailing whitespace
       return false;
     }
   }
 
   /**
-   * Read next token (byte) from input JSON.
-   * Whitespace will be skipped and next non-whitespace byte will be returned.
+   * Read next token (byte) from input JSON. Whitespace will be skipped and next non-whitespace byte
+   * will be returned.
    *
    * @return next non-whitespace byte in the JSON input
    */
@@ -696,7 +699,8 @@ final class JParser implements JsonParser {
           if (ci == readLimit - 1) {
             return calcHashAndCopyName(hash, ci);
           }
-          b = buffer[++ci];
+          ci++;
+          b = buffer[ci];
         } else if (b == '"') {
           break;
         }
@@ -709,9 +713,10 @@ final class JParser implements JsonParser {
       }
       nameEnd = currentIndex = ci + 1;
     } else {
-      //TODO: use length instead!? this will read data after used buffer size
+      // TODO: use length instead!? this will read data after used buffer size
       while (ci < buffer.length) {
-        byte b = buffer[ci++];
+        byte b = buffer[ci];
+        ci++;
         if (b == '\\') {
           if (ci == buffer.length) throw newParseError("Expecting '\"' for attribute name end");
           b = buffer[ci++];
@@ -729,8 +734,8 @@ final class JParser implements JsonParser {
   private int lastNameLen;
 
   private int calcHashAndCopyName(long hash, int ci) {
-    int soFar = ci - tokenStart;
-    long startPosition = currentPosition - soFar;
+    final int soFar = ci - tokenStart;
+    final long startPosition = currentPosition - soFar;
     while (chars.length < soFar) {
       chars = Arrays.copyOf(chars, chars.length * 2);
     }
@@ -751,11 +756,12 @@ final class JParser implements JsonParser {
       if (i == chars.length) {
         chars = Arrays.copyOf(chars, chars.length * 2);
       }
-      chars[i++] = (char) b;
+      chars[i] = (char) b;
+      i++;
       hash ^= b;
       hash *= 0x1000193;
     } while (!isEndOfStream());
-    //TODO: check offset
+    // TODO: check offset
     throw newParseErrorAt("JSON string was not closed with a double quote", (int) startPosition);
   }
 
@@ -805,30 +811,30 @@ final class JParser implements JsonParser {
   }
 
   /**
-   * Skip to next non-whitespace token (byte)
-   * Will not allocate memory while skipping over JSON input.
+   * Skip to next non-whitespace token (byte) Will not allocate memory while skipping over JSON
+   * input.
    *
    * @return next non-whitespace byte
    */
   private byte skipNextValue() {
-    if (last == '"') return skipString();
-    if (last == '{') {
-      return skipObject();
-    }
-    if (last == '[') {
-      return skipArray();
-    }
-    if (last == 'n') {
-      if (!isNullValue()) throw newParseErrorAt("Expecting 'null' for null constant", 0);
-      return nextToken();
-    }
-    if (last == 't') {
-      if (!wasTrue()) throw newParseErrorAt("Expecting 'true' for true constant", 0);
-      return nextToken();
-    }
-    if (last == 'f') {
-      if (!wasFalse()) throw newParseErrorAt("Expecting 'false' for false constant", 0);
-      return nextToken();
+    switch (last) {
+      case '"':
+        return skipString();
+      case '{':
+        return skipObject();
+      case '[':
+        return skipArray();
+      case 'n':
+        if (!isNullValue()) throw newParseErrorAt("Expecting 'null' for null constant", 0);
+        return nextToken();
+      case 't':
+        if (!wasTrue()) throw newParseErrorAt("Expecting 'true' for true constant", 0);
+        return nextToken();
+      case 'f':
+        if (!wasFalse()) throw newParseErrorAt("Expecting 'false' for false constant", 0);
+        return nextToken();
+      default:
+        break;
     }
     while (last != ',' && last != '}' && last != ']') {
       read();
@@ -850,21 +856,19 @@ final class JParser implements JsonParser {
   private byte skipObject() {
     byte nextToken = nextToken();
     if (nextToken == '}') return nextToken();
-    if (nextToken == '"') {
-      nextToken = skipString();
-    } else {
+    if (nextToken != '"') {
       throw newParseError("Expecting '\"' for attribute name");
     }
+    nextToken = skipString();
     if (nextToken != ':') throw newParseError("Expecting ':' after attribute name");
     nextToken();
     nextToken = skipNextValue();
     while (nextToken == ',') {
       nextToken = nextToken();
-      if (nextToken == '"') {
-        nextToken = skipString();
-      } else {
+      if (nextToken != '"') {
         throw newParseError("Expecting '\"' for attribute name");
       }
+      nextToken = skipString();
       if (nextToken != ':') throw newParseError("Expecting ':' after attribute name");
       nextToken();
       nextToken = skipNextValue();
@@ -899,10 +903,8 @@ final class JParser implements JsonParser {
       if (key == null) {
         key = lastFieldName();
       }
-      if (read() != ':') {
-        if (!wasWhiteSpace() || nextToken() != ':') {
-          throw newParseError("Expecting ':' after attribute name");
-        }
+      if ((read() != ':') && (!wasWhiteSpace() || nextToken() != ':')) {
+        throw newParseError("Expecting ':' after attribute name");
       }
       nextToken(); // position to read the value/next
       return key;
@@ -910,9 +912,7 @@ final class JParser implements JsonParser {
     return readKey();
   }
 
-  /**
-   * Read key value of JSON input.
-   */
+  /** Read key value of JSON input. */
   private String readKey() {
     final int len = parseString();
     final String key = new String(chars, 0, len);
@@ -925,9 +925,9 @@ final class JParser implements JsonParser {
   public boolean isNullValue() {
     if (last == 'n') {
       if (currentIndex + 2 < length
-        && buffer[currentIndex] == 'u'
-        && buffer[currentIndex + 1] == 'l'
-        && buffer[currentIndex + 2] == 'l') {
+          && buffer[currentIndex] == 'u'
+          && buffer[currentIndex + 1] == 'l'
+          && buffer[currentIndex + 2] == 'l') {
         currentIndex += 3;
         last = 'l';
         return true;
@@ -937,15 +937,13 @@ final class JParser implements JsonParser {
     return false;
   }
 
-  /**
-   * Checks if 'true' value is at current position.
-   */
+  /** Checks if 'true' value is at current position. */
   private boolean wasTrue() {
     if (last == 't') {
       if (currentIndex + 2 < length
-        && buffer[currentIndex] == 'r'
-        && buffer[currentIndex + 1] == 'u'
-        && buffer[currentIndex + 2] == 'e') {
+          && buffer[currentIndex] == 'r'
+          && buffer[currentIndex + 1] == 'u'
+          && buffer[currentIndex + 2] == 'e') {
         currentIndex += 3;
         last = 'e';
         return true;
@@ -955,16 +953,14 @@ final class JParser implements JsonParser {
     return false;
   }
 
-  /**
-   * Checks if 'false' value is at current position.
-   */
+  /** Checks if 'false' value is at current position. */
   private boolean wasFalse() {
     if (last == 'f') {
       if (currentIndex + 3 < length
-        && buffer[currentIndex] == 'a'
-        && buffer[currentIndex + 1] == 'l'
-        && buffer[currentIndex + 2] == 's'
-        && buffer[currentIndex + 3] == 'e') {
+          && buffer[currentIndex] == 'a'
+          && buffer[currentIndex + 1] == 'l'
+          && buffer[currentIndex + 2] == 's'
+          && buffer[currentIndex + 3] == 'e') {
         currentIndex += 4;
         last = 'e';
         return true;
@@ -998,9 +994,7 @@ final class JParser implements JsonParser {
     // do nothing
   }
 
-  /**
-   * Parse array start
-   */
+  /** Parse array start */
   @Override
   public void startArray() {
     if (last != '[' && nextToken() != '[') {
@@ -1009,9 +1003,7 @@ final class JParser implements JsonParser {
     }
   }
 
-  /**
-   * Parse array end
-   */
+  /** Parse array end */
   @Override
   public void endArray() {
     if (last != ']' && nextToken() != ']') {
@@ -1020,9 +1012,7 @@ final class JParser implements JsonParser {
     }
   }
 
-  /**
-   * Ensure object start
-   */
+  /** Ensure object start */
   @Override
   public void startObject() {
     if (last != '{' && nextToken() != '{') {
@@ -1031,9 +1021,7 @@ final class JParser implements JsonParser {
     }
   }
 
-  /**
-   * Ensure object end
-   */
+  /** Ensure object end */
   @Override
   public void endObject() {
     currentNames = nameStack.pop();
@@ -1051,7 +1039,8 @@ final class JParser implements JsonParser {
     error.append(description);
     error.append(". Found ");
     error.append((char) last);
-    //if (errorInfo == ErrorInfo.DESCRIPTION_ONLY) return ParsingException.create(error.toString(), false);
+    // if (errorInfo == ErrorInfo.DESCRIPTION_ONLY) return ParsingException.create(error.toString(),
+    // false);
     error.append(" ");
     positionDescription(0, error);
     return new JsonDataException(error.toString());
@@ -1068,7 +1057,8 @@ final class JParser implements JsonParser {
     return new JsonDataException(error.toString());
   }
 
-  JsonDataException newParseErrorAt(final String description, final int offset, final Exception cause) {
+  JsonDataException newParseErrorAt(
+      final String description, final int offset, final Exception cause) {
     if (cause == null) throw new IllegalArgumentException("cause can't be null");
     if (errorInfo == ErrorInfo.MINIMAL) return new JsonDataException(description, cause);
     error.setLength(0);
@@ -1081,17 +1071,20 @@ final class JParser implements JsonParser {
       error.append(" ");
     }
     error.append(description);
-    //if (errorInfo == ErrorInfo.DESCRIPTION_ONLY) return new JsonDataException(error.toString(), cause);
+    // if (errorInfo == ErrorInfo.DESCRIPTION_ONLY) return new JsonDataException(error.toString(),
+    // cause);
     error.append(" ");
     positionDescription(offset, error);
     return new JsonDataException(error.toString());
   }
 
-  JsonDataException newParseErrorFormat(final String description, final int offset, final String extraFormat, Object... args) {
+  JsonDataException newParseErrorFormat(
+      final String description, final int offset, final String extraFormat, Object... args) {
     if (errorInfo == ErrorInfo.MINIMAL) return new JsonDataException(description);
     error.setLength(0);
     errorFormatter.format(extraFormat, args);
-    //if (errorInfo == ErrorInfo.DESCRIPTION_ONLY) return ParsingException.create(error.toString(), false);
+    // if (errorInfo == ErrorInfo.DESCRIPTION_ONLY) return ParsingException.create(error.toString(),
+    // false);
     error.append(" ");
     positionDescription(offset, error);
     return new JsonDataException(error.toString());
@@ -1101,7 +1094,8 @@ final class JParser implements JsonParser {
     return newParseErrorWith(description, 0, description, argument, "");
   }
 
-  JsonDataException newParseErrorWith(String description, int offset, String extra, Object extraArgument, String extraSuffix) {
+  JsonDataException newParseErrorWith(
+      String description, int offset, String extra, Object extraArgument, String extraSuffix) {
     if (errorInfo == ErrorInfo.MINIMAL) return new JsonDataException(description);
     error.setLength(0);
     error.append(extra);
@@ -1109,10 +1103,10 @@ final class JParser implements JsonParser {
       error.append(": '").append(extraArgument).append("'");
     }
     error.append(extraSuffix);
-    //if (errorInfo == ErrorInfo.DESCRIPTION_ONLY) return ParsingException.create(error.toString(), false);
+    // if (errorInfo == ErrorInfo.DESCRIPTION_ONLY) return ParsingException.create(error.toString(),
+    // false);
     error.append(" ");
     positionDescription(offset, error);
     return new JsonDataException(error.toString());
   }
 }
-

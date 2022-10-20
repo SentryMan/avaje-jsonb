@@ -2,16 +2,13 @@ package io.avaje.jsonb.core;
 
 import io.avaje.jsonb.JsonReader;
 import io.avaje.jsonb.spi.PropertyNames;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 
-/**
- * JsonReader with a source of java objects, Map, Collection etc.
- */
+/** JsonReader with a source of java objects, Map, Collection etc. */
 final class ObjectJsonReader implements JsonReader {
 
   private final Object source;
@@ -30,9 +27,7 @@ final class ObjectJsonReader implements JsonReader {
   }
 
   @Override
-  public void unmappedField(String fieldName) {
-
-  }
+  public void unmappedField(String fieldName) {}
 
   @Override
   public void close() {
@@ -66,7 +61,7 @@ final class ObjectJsonReader implements JsonReader {
   @SuppressWarnings("unchecked")
   @Override
   public void beginObject() {
-    Map<String, Object> map = (Map<String, Object>) currentValue;
+    final Map<String, Object> map = (Map<String, Object>) currentValue;
     mapIterator = map.entrySet().iterator();
   }
 

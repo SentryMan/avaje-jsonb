@@ -1,4 +1,2 @@
-/**
- * Core internal implementation.
- */
+/** Core internal implementation. */
 package io.avaje.jsonb.core;

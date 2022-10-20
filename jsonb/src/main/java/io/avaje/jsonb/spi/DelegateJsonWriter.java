@@ -1,13 +1,10 @@
 package io.avaje.jsonb.spi;
 
 import io.avaje.jsonb.JsonWriter;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-/**
- * Provides a delegating JsonWriter.
- */
+/** Provides a delegating JsonWriter. */
 public abstract class DelegateJsonWriter implements JsonWriter {
 
   protected final JsonWriter delegate;
@@ -67,7 +64,7 @@ public abstract class DelegateJsonWriter implements JsonWriter {
   }
 
   @Override
-  public final  void beginObject() {
+  public final void beginObject() {
     delegate.beginObject();
   }
 
@@ -185,5 +182,4 @@ public abstract class DelegateJsonWriter implements JsonWriter {
   public void close() {
     delegate.close();
   }
-
 }

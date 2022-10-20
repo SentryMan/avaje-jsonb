@@ -1,22 +1,19 @@
 package org.example;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import io.avaje.jsonb.Json;
 import io.avaje.jsonb.JsonReader;
 import io.avaje.jsonb.JsonType;
 import io.avaje.jsonb.Jsonb;
-import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class StreamBasicTest {
 
-  Jsonb jsonb = Jsonb.builder()
-    .add(MyBasic.class, MyBasicJsonAdapter::new)
-    .build();
+  Jsonb jsonb = Jsonb.builder().add(MyBasic.class, MyBasicJsonAdapter::new).build();
 
   JsonType<MyBasic> type = jsonb.type(MyBasic.class);
 
@@ -38,16 +35,18 @@ class StreamBasicTest {
 
   private List<MyBasic> basicList() {
     List<MyBasic> basics = new ArrayList<>();
-    basics.add(new MyBasic(1,"a"));
-    basics.add(new MyBasic(2,"b"));
-    basics.add(new MyBasic(3,"c"));
+    basics.add(new MyBasic(1, "a"));
+    basics.add(new MyBasic(2, "b"));
+    basics.add(new MyBasic(3, "c"));
     return basics;
   }
 
   @Test
   void stream_toJson() {
     String asJson = type.stream().toJson(basicList().stream());
-    assertThat(asJson).isEqualTo("[{\"id\":1,\"name\":\"a\"},{\"id\":2,\"name\":\"b\"},{\"id\":3,\"name\":\"c\"}]");
+    assertThat(asJson)
+        .isEqualTo(
+            "[{\"id\":1,\"name\":\"a\"},{\"id\":2,\"name\":\"b\"},{\"id\":3,\"name\":\"c\"}]");
   }
 
   @Test
@@ -60,17 +59,17 @@ class StreamBasicTest {
       asStream.forEach(sb::append);
     }
 
-    assertThat(sb.toString()).isEqualTo("MyBasic[id=1, name=a]MyBasic[id=2, name=b]MyBasic[id=3, name=c]");
+    assertThat(sb.toString())
+        .isEqualTo("MyBasic[id=1, name=a]MyBasic[id=2, name=b]MyBasic[id=3, name=c]");
 
     // same test but using - JsonType<Stream<T>>
     JsonType<Stream<MyBasic>> streamJsonType = type.stream();
 
     sb = new StringBuilder();
-    streamJsonType
-      .fromJson(arrayJson)
-      .forEach(sb::append);
+    streamJsonType.fromJson(arrayJson).forEach(sb::append);
 
-    assertThat(sb.toString()).isEqualTo("MyBasic[id=1, name=a]MyBasic[id=2, name=b]MyBasic[id=3, name=c]");
+    assertThat(sb.toString())
+        .isEqualTo("MyBasic[id=1, name=a]MyBasic[id=2, name=b]MyBasic[id=3, name=c]");
   }
 
   @Test
@@ -84,7 +83,8 @@ class StreamBasicTest {
       asStream.forEach(sb::append);
     }
 
-    assertThat(sb.toString()).isEqualTo("MyBasic[id=1, name=a]MyBasic[id=2, name=b]MyBasic[id=3, name=c]");
+    assertThat(sb.toString())
+        .isEqualTo("MyBasic[id=1, name=a]MyBasic[id=2, name=b]MyBasic[id=3, name=c]");
 
     // same test but using - JsonType<Stream<T>>
     JsonType<Stream<MyBasic>> streamJsonType = type.stream();
@@ -92,7 +92,8 @@ class StreamBasicTest {
     sb = new StringBuilder();
     try (Stream<MyBasic> myBasicStream = streamJsonType.fromJson(newLineDelimitedJson)) {
       myBasicStream.forEach(sb::append);
-      assertThat(sb.toString()).isEqualTo("MyBasic[id=1, name=a]MyBasic[id=2, name=b]MyBasic[id=3, name=c]");
+      assertThat(sb.toString())
+          .isEqualTo("MyBasic[id=1, name=a]MyBasic[id=2, name=b]MyBasic[id=3, name=c]");
     }
   }
 
@@ -106,7 +107,7 @@ class StreamBasicTest {
       type.stream(reader).forEach(sb::append);
     }
 
-    assertThat(sb.toString()).isEqualTo("MyBasic[id=1, name=a]MyBasic[id=2, name=b]MyBasic[id=3, name=c]");
+    assertThat(sb.toString())
+        .isEqualTo("MyBasic[id=1, name=a]MyBasic[id=2, name=b]MyBasic[id=3, name=c]");
   }
-
 }

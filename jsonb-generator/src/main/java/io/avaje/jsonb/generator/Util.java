@@ -7,22 +7,19 @@ class Util {
   }
 
   static String packageOf(String cls) {
-    int pos = cls.lastIndexOf('.');
-    return (pos == -1) ? "" : cls.substring(0, pos);
+    final int pos = cls.lastIndexOf('.');
+    return pos == -1 ? "" : cls.substring(0, pos);
   }
 
   static String shortName(String fullType) {
-    int p = fullType.lastIndexOf('.');
+    final int p = fullType.lastIndexOf('.');
     if (p == -1) {
       return fullType;
-    } else {
-      return fullType.substring(p + 1);
     }
+    return fullType.substring(p + 1);
   }
 
-  /**
-   * Return the common parent package.
-   */
+  /** Return the common parent package. */
   static String commonParent(String currentTop, String aPackage) {
     if (aPackage == null) return currentTop;
     if (currentTop == null) return packageOf(aPackage);
@@ -46,26 +43,23 @@ class Util {
   static String initCap(String input) {
     if (input.length() < 2) {
       return input.toUpperCase();
-    } else {
-      return Character.toUpperCase(input.charAt(0)) + input.substring(1);
     }
+    return Character.toUpperCase(input.charAt(0)) + input.substring(1);
   }
 
   static String trimQuotes(String value) {
     return value.substring(1, value.length() - 1);
   }
 
-  /**
-   * Trim off the .class suffix.
-   */
+  /** Trim off the .class suffix. */
   static String trimClassSuffix(String nameWithSuffix) {
     return nameWithSuffix.substring(0, nameWithSuffix.length() - 6);
   }
 
   static String initLower(String name) {
-    StringBuilder sb = new StringBuilder(name.length());
+    final StringBuilder sb = new StringBuilder(name.length());
     boolean toLower = true;
-    for (char ch : name.toCharArray()) {
+    for (final char ch : name.toCharArray()) {
       if (Character.isUpperCase(ch)) {
         if (toLower) {
           sb.append(Character.toLowerCase(ch));
@@ -81,17 +75,17 @@ class Util {
   }
 
   /**
-   * Return the base type given the JsonAdapter type.
-   * Remove the "jsonb" sub-package and the "JsonAdapter" suffix.
+   * Return the base type given the JsonAdapter type. Remove the "jsonb" sub-package and the
+   * "JsonAdapter" suffix.
    */
   static String baseTypeOfAdapter(String adapterFullName) {
-    int posLast = adapterFullName.lastIndexOf('.');
-    int posPrior = adapterFullName.lastIndexOf('.', posLast - 1);
-    int nameEnd = adapterFullName.length() - 11; // "JsonAdapter".length();
+    final int posLast = adapterFullName.lastIndexOf('.');
+    final int posPrior = adapterFullName.lastIndexOf('.', posLast - 1);
+    final int nameEnd = adapterFullName.length() - 11; // "JsonAdapter".length();
     if (posPrior == -1) {
       return adapterFullName.substring(posLast + 1, nameEnd);
     }
     return adapterFullName.substring(0, posPrior)
-      + adapterFullName.substring(posLast, nameEnd).replace('$', '.');
+        + adapterFullName.substring(posLast, nameEnd).replace('$', '.');
   }
 }

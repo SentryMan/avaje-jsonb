@@ -4,7 +4,6 @@ import io.avaje.jsonb.*;
 import io.avaje.jsonb.spi.PropertyNames;
 import io.avaje.jsonb.spi.ViewBuilder;
 import io.avaje.jsonb.spi.ViewBuilderAware;
-
 import java.lang.invoke.MethodHandle;
 import java.time.Instant;
 import java.util.List;
@@ -42,9 +41,16 @@ public class CustomerJsonAdapter extends JsonAdapter<Customer> implements ViewBu
     builder.beginObject(name, handle);
     builder.add("id", intAdapter, builder.method(Customer.class, "id", Integer.class));
     builder.add("name", stringAdapter, builder.method(Customer.class, "name", String.class));
-    builder.add("whenCreated", instantAdapter, builder.method(Customer.class, "whenCreated", Instant.class));
-    builder.add("billingAddress", addressAdapter, builder.method(Customer.class, "billingAddress", Address.class));
-    builder.add("contacts", contactsAdapter, builder.method(Customer.class, "contacts", List.class));
+    builder.add(
+        "whenCreated",
+        instantAdapter,
+        builder.method(Customer.class, "whenCreated", Instant.class));
+    builder.add(
+        "billingAddress",
+        addressAdapter,
+        builder.method(Customer.class, "billingAddress", Address.class));
+    builder.add(
+        "contacts", contactsAdapter, builder.method(Customer.class, "contacts", List.class));
     builder.endObject();
   }
 
@@ -52,15 +58,15 @@ public class CustomerJsonAdapter extends JsonAdapter<Customer> implements ViewBu
   public void toJson(JsonWriter writer, Customer customer) {
     writer.beginObject();
     writer.names(names);
-    writer.name( 0);
+    writer.name(0);
     intAdapter.toJson(writer, customer.id());
-    writer.name( 1);
+    writer.name(1);
     stringAdapter.toJson(writer, customer.name());
-    writer.name( 2);
+    writer.name(2);
     instantAdapter.toJson(writer, customer.whenCreated());
-    writer.name( 3);
+    writer.name(3);
     addressAdapter.toJson(writer, customer.billingAddress());
-    writer.name( 4);
+    writer.name(4);
     contactsAdapter.toJson(writer, customer.contacts());
     writer.endObject();
   }
@@ -68,40 +74,56 @@ public class CustomerJsonAdapter extends JsonAdapter<Customer> implements ViewBu
   @Override
   public Customer fromJson(JsonReader reader) {
 
-    Integer id = null; boolean _set$id = false;
-    String name = null; boolean _set$name = false;
-    Instant whenCreated = null; boolean _set$whenCreated = false;
-    Address billingAddress = null; boolean _set$billingAddress = false;
-    List<Contact> contacts = null; boolean _set$contacts = false;
+    Integer id = null;
+    boolean _set$id = false;
+    String name = null;
+    boolean _set$name = false;
+    Instant whenCreated = null;
+    boolean _set$whenCreated = false;
+    Address billingAddress = null;
+    boolean _set$billingAddress = false;
+    List<Contact> contacts = null;
+    boolean _set$contacts = false;
 
     reader.beginObject();
     while (reader.hasNextField()) {
       String fieldName = reader.nextField();
       switch (fieldName) {
-        case "id": {
-          id = intAdapter.fromJson(reader); _set$id = true;
-          break;
-        }
-        case "name": {
-          name = stringAdapter.fromJson(reader); _set$name = true;
-          break;
-        }
-        case "whenCreated": {
-          whenCreated = instantAdapter.fromJson(reader); _set$whenCreated = true;
-          break;
-        }
-        case "billingAddress": {
-          billingAddress = addressAdapter.fromJson(reader); _set$billingAddress = true;
-          break;
-        }
-        case "contacts": {
-          contacts = contactsAdapter.fromJson(reader); _set$contacts = true;
-          break;
-        }
-        default: {
-          // TODO: Support skip unknown field/value etc
-          throw new IllegalStateException("fieldName " + fieldName + " not found ");
-        }
+        case "id":
+          {
+            id = intAdapter.fromJson(reader);
+            _set$id = true;
+            break;
+          }
+        case "name":
+          {
+            name = stringAdapter.fromJson(reader);
+            _set$name = true;
+            break;
+          }
+        case "whenCreated":
+          {
+            whenCreated = instantAdapter.fromJson(reader);
+            _set$whenCreated = true;
+            break;
+          }
+        case "billingAddress":
+          {
+            billingAddress = addressAdapter.fromJson(reader);
+            _set$billingAddress = true;
+            break;
+          }
+        case "contacts":
+          {
+            contacts = contactsAdapter.fromJson(reader);
+            _set$contacts = true;
+            break;
+          }
+        default:
+          {
+            // TODO: Support skip unknown field/value etc
+            throw new IllegalStateException("fieldName " + fieldName + " not found ");
+          }
       }
     }
     reader.endObject();
@@ -114,5 +136,4 @@ public class CustomerJsonAdapter extends JsonAdapter<Customer> implements ViewBu
     if (_set$contacts) customer.contacts(contacts);
     return customer;
   }
-
 }

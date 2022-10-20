@@ -1,8 +1,8 @@
 package io.avaje.jsonb.generator;
 
-import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.Writer;
+import javax.tools.JavaFileObject;
 
 class SimpleAdapterWriter {
 
@@ -17,7 +17,7 @@ class SimpleAdapterWriter {
   SimpleAdapterWriter(BeanReader beanReader, ProcessingContext context) {
     this.beanReader = beanReader;
     this.context = context;
-    AdapterName adapterName = new AdapterName(beanReader.getBeanType());
+    final AdapterName adapterName = new AdapterName(beanReader.getBeanType());
     this.adapterShortName = adapterName.shortName();
     this.adapterPackage = adapterName.adapterPackage();
     this.adapterFullName = adapterName.fullName();
@@ -28,7 +28,7 @@ class SimpleAdapterWriter {
   }
 
   private Writer createFileWriter() throws IOException {
-    JavaFileObject jfo = context.createWriter(adapterFullName);
+    final JavaFileObject jfo = context.createWriter(adapterFullName);
     return jfo.openWriter();
   }
 
@@ -62,7 +62,9 @@ class SimpleAdapterWriter {
 
   private void writeClassStart() {
     writer.append("@Generated").eol();
-    writer.append("public final class %sJsonAdapter extends JsonAdapter<%s> ", adapterShortName, beanReader.shortName());
+    writer.append(
+        "public final class %sJsonAdapter extends JsonAdapter<%s> ",
+        adapterShortName, beanReader.shortName());
     if (!beanReader.hasSubtypes()) {
       writer.append("implements ViewBuilderAware ");
     }

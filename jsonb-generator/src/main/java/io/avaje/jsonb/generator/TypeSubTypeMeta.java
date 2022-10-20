@@ -1,10 +1,10 @@
 package io.avaje.jsonb.generator;
 
-import javax.lang.model.element.TypeElement;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import javax.lang.model.element.TypeElement;
 
 class TypeSubTypeMeta {
 
@@ -20,9 +20,9 @@ class TypeSubTypeMeta {
   }
 
   void add(String key, String val) {
-    if (key.equals("type()")) {
+    if ("type()".equals(key)) {
       type = Util.trimClassSuffix(val);
-    } else if (key.equals("name()")) {
+    } else if ("name()".equals(key)) {
       name = Util.trimQuotes(val);
     }
   }
@@ -62,7 +62,7 @@ class TypeSubTypeMeta {
   }
 
   private void writeFromJsonSetters(Append writer, String varName, BeanReader beanReader) {
-    for (FieldReader field : beanReader.allFields()) {
+    for (final FieldReader field : beanReader.allFields()) {
       if (isIncludeSetter(field)) {
         field.writeFromJsonSetter(writer, varName, "  ");
       }
@@ -71,24 +71,25 @@ class TypeSubTypeMeta {
 
   private boolean isIncludeSetter(FieldReader field) {
     return field.includeFromJson()
-      && !constructorFieldNames.contains(field.fieldName())
-      && field.includeForType(this);
+        && !constructorFieldNames.contains(field.fieldName())
+        && field.includeForType(this);
   }
 
   private final Set<String> constructorFieldNames = new LinkedHashSet<>();
 
   private void writeFromJsonConstructor(Append writer, String varName, BeanReader beanReader) {
     writer.append("      %s _$%s = new %s(", type, varName, type);
-    MethodReader constructor = findConstructor();
+    final MethodReader constructor = findConstructor();
     if (constructor != null) {
-      List<MethodReader.MethodParam> params = constructor.getParams();
+      final List<MethodReader.MethodParam> params = constructor.getParams();
       for (int i = 0, size = params.size(); i < size; i++) {
         if (i > 0) {
           writer.append(", ");
         }
-        String paramName = params.get(i).name();
+        final String paramName = params.get(i).name();
         constructorFieldNames.add(paramName);
-        writer.append(beanReader.constructorParamName(paramName)); // assuming name matches field here?
+        writer.append(
+            beanReader.constructorParamName(paramName)); // assuming name matches field here?
       }
     }
     writer.append(");").eol();
@@ -100,5 +101,4 @@ class TypeSubTypeMeta {
     }
     return publicConstructors.get(0);
   }
-
 }

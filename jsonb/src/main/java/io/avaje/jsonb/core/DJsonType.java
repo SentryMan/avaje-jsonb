@@ -1,10 +1,19 @@
 package io.avaje.jsonb.core;
 
-import io.avaje.jsonb.*;
+import io.avaje.jsonb.JsonAdapter;
+import io.avaje.jsonb.JsonReader;
+import io.avaje.jsonb.JsonType;
+import io.avaje.jsonb.JsonView;
+import io.avaje.jsonb.JsonWriter;
+import io.avaje.jsonb.Types;
 import io.avaje.jsonb.spi.BufferedJsonWriter;
 import io.avaje.jsonb.spi.BytesJsonWriter;
-
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Reader;
+import java.io.UncheckedIOException;
+import java.io.Writer;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +39,8 @@ class DJsonType<T> implements JsonType<T> {
 
   @Override
   public JsonType<Stream<T>> stream() {
-    return new DJsonStreamType<>(jsonb, Types.newParameterizedType(Stream.class, type), new StreamAdapter<>(adapter));
+    return new DJsonStreamType<>(
+        jsonb, Types.newParameterizedType(Stream.class, type), new StreamAdapter<>(adapter));
   }
 
   @Override
@@ -96,7 +106,7 @@ class DJsonType<T> implements JsonType<T> {
   private void close(OutputStream outputStream) {
     try {
       outputStream.close();
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new UncheckedIOException("Error closing stream", e);
     }
   }

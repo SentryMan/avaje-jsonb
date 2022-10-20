@@ -15,49 +15,59 @@
  */
 package io.avaje.jsonb.core;
 
-import io.avaje.jsonb.*;
+import static java.util.Objects.requireNonNull;
 
+import io.avaje.jsonb.Json;
+import io.avaje.jsonb.JsonAdapter;
+import io.avaje.jsonb.JsonDataException;
+import io.avaje.jsonb.JsonException;
+import io.avaje.jsonb.JsonReader;
+import io.avaje.jsonb.JsonWriter;
+import io.avaje.jsonb.Jsonb;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
-import java.util.*;
-
-import static java.util.Objects.requireNonNull;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 final class BasicTypeAdapters {
 
-  public static final JsonAdapter.Factory FACTORY = (type, jsonb) -> {
-    if (type == Boolean.TYPE) return new BooleanAdapter();
-    if (type == Byte.TYPE) return new ByteAdapter();
-    if (type == Character.TYPE) return new CharacterAdapter();
-    if (type == Double.TYPE) return new DoubleAdapter();
-    if (type == Float.TYPE) return new FloatAdapter();
-    if (type == Integer.TYPE) return new IntegerAdapter();
-    if (type == Long.TYPE) return new LongAdapter();
-    if (type == Short.TYPE) return new ShortAdapter();
-    if (type == Boolean.class) return new BooleanAdapter().nullSafe();
-    if (type == Byte.class) return new ByteAdapter().nullSafe();
-    if (type == Character.class) return new CharacterAdapter().nullSafe();
-    if (type == Double.class) return new DoubleAdapter().nullSafe();
-    if (type == Float.class) return new FloatAdapter().nullSafe();
-    if (type == Integer.class) return new IntegerAdapter().nullSafe();
-    if (type == Long.class) return new LongAdapter().nullSafe();
-    if (type == Short.class) return new ShortAdapter().nullSafe();
-    if (type == String.class) return new StringAdapter().nullSafe();
-    if (type == UUID.class) return new UuidAdapter().nullSafe();
-    if (type == URL.class) return new UrlAdapter().nullSafe();
-    if (type == URI.class) return new UriAdapter().nullSafe();
-    if (type == Object.class) return new ObjectJsonAdapter(jsonb).nullSafe();
+  public static final JsonAdapter.Factory FACTORY =
+      (type, jsonb) -> {
+        if (type == Boolean.TYPE) return new BooleanAdapter();
+        if (type == Byte.TYPE) return new ByteAdapter();
+        if (type == Character.TYPE) return new CharacterAdapter();
+        if (type == Double.TYPE) return new DoubleAdapter();
+        if (type == Float.TYPE) return new FloatAdapter();
+        if (type == Integer.TYPE) return new IntegerAdapter();
+        if (type == Long.TYPE) return new LongAdapter();
+        if (type == Short.TYPE) return new ShortAdapter();
+        if (type == Boolean.class) return new BooleanAdapter().nullSafe();
+        if (type == Byte.class) return new ByteAdapter().nullSafe();
+        if (type == Character.class) return new CharacterAdapter().nullSafe();
+        if (type == Double.class) return new DoubleAdapter().nullSafe();
+        if (type == Float.class) return new FloatAdapter().nullSafe();
+        if (type == Integer.class) return new IntegerAdapter().nullSafe();
+        if (type == Long.class) return new LongAdapter().nullSafe();
+        if (type == Short.class) return new ShortAdapter().nullSafe();
+        if (type == String.class) return new StringAdapter().nullSafe();
+        if (type == UUID.class) return new UuidAdapter().nullSafe();
+        if (type == URL.class) return new UrlAdapter().nullSafe();
+        if (type == URI.class) return new UriAdapter().nullSafe();
+        if (type == Object.class) return new ObjectJsonAdapter(jsonb).nullSafe();
 
-    Class<?> rawType = Util.rawType(type);
-    if (rawType.isEnum()) {
-      return createEnumAdapter(rawType);
-    }
-    return null;
-  };
+        final Class<?> rawType = Util.rawType(type);
+        if (rawType.isEnum()) {
+          return createEnumAdapter(rawType);
+        }
+        return null;
+      };
 
   private static final class UuidAdapter extends JsonAdapter<UUID> {
     @Override
@@ -81,7 +91,7 @@ final class BasicTypeAdapters {
     public URL fromJson(JsonReader reader) {
       try {
         return new URL(reader.readString());
-      } catch (MalformedURLException e) {
+      } catch (final MalformedURLException e) {
         throw new JsonDataException(e);
       }
     }
@@ -151,12 +161,14 @@ final class BasicTypeAdapters {
   static final class CharacterAdapter extends JsonAdapter<Character> {
     @Override
     public Character fromJson(JsonReader reader) {
-      String value = reader.readString();
+      final String value = reader.readString();
       if (value.length() > 1) {
-        throw new JsonDataException(String.format("Expected %s but was %s at path %s", "a char", '"' + value + '"', reader.location()));
-      } else {
-        return value.charAt(0);
+        throw new JsonDataException(
+            String.format(
+                "Expected %s but was %s at path %s",
+                "a char", '"' + value + '"', reader.location()));
       }
+      return value.charAt(0);
     }
 
     @Override
@@ -190,12 +202,12 @@ final class BasicTypeAdapters {
   static final class FloatAdapter extends JsonAdapter<Float> {
     @Override
     public Float fromJson(JsonReader reader) {
-      float value = (float) reader.readDouble();
+      final float value = (float) reader.readDouble();
       if (Float.isInfinite(value)) { // !reader.isLenient() &&
-        throw new JsonDataException("JSON forbids NaN and infinities: " + value + " at path " + reader.location());
-      } else {
-        return value;
+        throw new JsonDataException(
+            "JSON forbids NaN and infinities: " + value + " at path " + reader.location());
       }
+      return value;
     }
 
     @Override
@@ -279,12 +291,12 @@ final class BasicTypeAdapters {
   }
 
   static int rangeCheckNextInt(JsonReader reader, String typeMessage, int min, int max) {
-    int value = reader.readInt();
+    final int value = reader.readInt();
     if (value >= min && value <= max) {
       return value;
-    } else {
-      throw new JsonDataException(String.format("Expected %s but was %s at path %s", typeMessage, value, reader.location()));
     }
+    throw new JsonDataException(
+        String.format("Expected %s but was %s at path %s", typeMessage, value, reader.location()));
   }
 
   @SuppressWarnings("rawtypes")
@@ -321,29 +333,33 @@ final class BasicTypeAdapters {
         case NULL:
           return null;
         default:
-          throw new IllegalStateException("Expected a value but was " + reader.currentToken() + " at path " + reader.location());
+          throw new IllegalStateException(
+              "Expected a value but was "
+                  + reader.currentToken()
+                  + " at path "
+                  + reader.location());
       }
     }
 
     @Override
     public void toJson(JsonWriter writer, Object value) {
-      Class<?> valueClass = value.getClass();
+      final Class<?> valueClass = value.getClass();
       if (valueClass == Object.class) {
         writer.beginObject();
         writer.endObject();
       } else {
-        this.jsonb.adapter(this.toJsonType(valueClass)).toJson(writer, value);
+        this.jsonb.adapter(toJsonType(valueClass)).toJson(writer, value);
       }
     }
 
     private Type toJsonType(Class<?> valueClass) {
       if (Map.class.isAssignableFrom(valueClass)) {
         return Map.class;
-      } else {
-        return Collection.class.isAssignableFrom(valueClass) ? Collection.class : valueClass;
       }
+      return Collection.class.isAssignableFrom(valueClass) ? Collection.class : valueClass;
     }
 
+    @Override
     public String toString() {
       return "JsonAdapter(Object)";
     }
@@ -351,8 +367,8 @@ final class BasicTypeAdapters {
 
   @SuppressWarnings("rawtypes")
   private static JsonAdapter<?> createEnumAdapter(Class<?> rawType) {
-    for (Method declaredMethod : rawType.getDeclaredMethods()) {
-      for (Annotation annotation : declaredMethod.getDeclaredAnnotations()) {
+    for (final Method declaredMethod : rawType.getDeclaredMethods()) {
+      for (final Annotation annotation : declaredMethod.getDeclaredAnnotations()) {
         if (isJsonValue(annotation)) {
           return enumMap(rawType, declaredMethod);
         }
@@ -363,20 +379,26 @@ final class BasicTypeAdapters {
 
   private static boolean isJsonValue(Annotation annotation) {
     return Json.Value.class == annotation.annotationType()
-      || annotation.annotationType().getCanonicalName().endsWith("JsonValue"); // e.g. Jackson annotation
+        || annotation
+            .annotationType()
+            .getCanonicalName()
+            .endsWith("JsonValue"); // e.g. Jackson annotation
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
   private static JsonAdapter<?> enumMap(Class<?> type, Method method) {
-    Class<? extends Enum<?>> enumType = (Class<? extends Enum<?>>) type;
-    EnumType enumType1 = determineEnumType(method.getReturnType());
+    final Class<? extends Enum<?>> enumType = (Class<? extends Enum<?>>) type;
+    final EnumType enumType1 = determineEnumType(method.getReturnType());
     if (enumType1 == EnumType.INT) {
       return new EnumIntValueMap(method, enumType);
     }
     return new EnumValueMap(method, enumType);
   }
 
-  enum EnumType {INT, STRING}
+  enum EnumType {
+    INT,
+    STRING
+  }
 
   private static EnumType determineEnumType(Class<?> returnType) {
     return returnType == int.class ? EnumType.INT : EnumType.STRING;
@@ -390,12 +412,12 @@ final class BasicTypeAdapters {
 
     EnumValueMap(Method method, Class<T> enumType) {
       this.enumType = enumType;
-      for (Enum<?> enumConstant : enumType.getEnumConstants()) {
+      for (final Enum<?> enumConstant : enumType.getEnumConstants()) {
         try {
-          String val = String.valueOf(method.invoke(enumConstant));
+          final String val = String.valueOf(method.invoke(enumConstant));
           toValue.put(enumConstant.name(), val);
           toName.put(val, enumConstant.name());
-        } catch (Exception e) {
+        } catch (final Exception e) {
           throw new JsonException("Error trying to invoke Json.Value method on " + enumConstant, e);
         }
       }
@@ -408,10 +430,16 @@ final class BasicTypeAdapters {
 
     @Override
     public T fromJson(JsonReader reader) {
-      String value = reader.readString();
-      String name = toName.get(value);
+      final String value = reader.readString();
+      final String name = toName.get(value);
       if (name == null) {
-        throw new JsonDataException("Unable to determine enum value " + enumType + " value for " + value + " at " + reader.location());
+        throw new JsonDataException(
+            "Unable to determine enum value "
+                + enumType
+                + " value for "
+                + value
+                + " at "
+                + reader.location());
       }
       return Enum.valueOf(enumType, name);
     }
@@ -430,12 +458,12 @@ final class BasicTypeAdapters {
 
     EnumIntValueMap(Method method, Class<T> enumType) {
       this.enumType = enumType;
-      for (Enum<?> enumConstant : enumType.getEnumConstants()) {
+      for (final Enum<?> enumConstant : enumType.getEnumConstants()) {
         try {
-          Integer val = (Integer) method.invoke(enumConstant);
+          final Integer val = (Integer) method.invoke(enumConstant);
           toValue.put(enumConstant.name(), val);
           toName.put(val, enumConstant.name());
-        } catch (Exception e) {
+        } catch (final Exception e) {
           throw new JsonException("Error trying to invoke Json.Value method on " + enumConstant, e);
         }
       }
@@ -443,16 +471,22 @@ final class BasicTypeAdapters {
 
     @Override
     public void toJson(JsonWriter writer, T value) {
-      int val = toValue.get(value.name());
+      final int val = toValue.get(value.name());
       writer.value(val);
     }
 
     @Override
     public T fromJson(JsonReader reader) {
-      int value = reader.readInt();
-      String name = toName.get(value);
+      final int value = reader.readInt();
+      final String name = toName.get(value);
       if (name == null) {
-        throw new JsonDataException("Unable to determine enum value " + enumType + " value for " + value + " at " + reader.location());
+        throw new JsonDataException(
+            "Unable to determine enum value "
+                + enumType
+                + " value for "
+                + value
+                + " at "
+                + reader.location());
       }
       return Enum.valueOf(enumType, name);
     }
@@ -472,7 +506,7 @@ final class BasicTypeAdapters {
 
     @Override
     public T fromJson(JsonReader reader) {
-      String value = reader.readString();
+      final String value = reader.readString();
       return Enum.valueOf(enumType, value);
     }
 

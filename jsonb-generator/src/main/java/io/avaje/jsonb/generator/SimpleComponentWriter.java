@@ -1,12 +1,12 @@
 package io.avaje.jsonb.generator;
 
-import javax.tools.FileObject;
-import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import javax.tools.FileObject;
+import javax.tools.JavaFileObject;
 
 class SimpleComponentWriter {
 
@@ -42,9 +42,9 @@ class SimpleComponentWriter {
   }
 
   void writeMetaInf() throws IOException {
-    FileObject fileObject = context.createMetaInfWriterFor(Constants.META_INF_COMPONENT);
+    final FileObject fileObject = context.createMetaInfWriterFor(Constants.META_INF_COMPONENT);
     if (fileObject != null) {
-      Writer writer = fileObject.openWriter();
+      final Writer writer = fileObject.openWriter();
       writer.write(metaData.fullName());
       writer.close();
     }
@@ -53,17 +53,17 @@ class SimpleComponentWriter {
   private void writeRegister() {
     writer.append("  @Override").eol();
     writer.append("  public void register(Jsonb.Builder builder) {").eol();
-    for (String adapterFullName : metaData.all()) {
-      String adapterShortName = Util.shortName(adapterFullName);
-      String typeName = typeShortName(adapterShortName);
+    for (final String adapterFullName : metaData.all()) {
+      final String adapterShortName = Util.shortName(adapterFullName);
+      final String typeName = typeShortName(adapterShortName);
       writer.append("    builder.add(%s.class, %s::new);", typeName, adapterShortName).eol();
     }
     writer.append("  }").eol().eol();
   }
 
   private String typeShortName(String adapterShortName) {
-    String typeName = adapterShortName.substring(0, adapterShortName.length() - 11);
-    int pos = typeName.lastIndexOf('$');
+    final String typeName = adapterShortName.substring(0, adapterShortName.length() - 11);
+    final int pos = typeName.lastIndexOf('$');
     if (pos > -1) {
       return typeName.substring(pos + 1);
     }
@@ -75,11 +75,11 @@ class SimpleComponentWriter {
   }
 
   private void writeClassStart() {
-    String fullName = metaData.fullName();
-    String shortName = Util.shortName(fullName);
+    final String fullName = metaData.fullName();
+    final String shortName = Util.shortName(fullName);
     writer.append("@Generated").eol();
     writer.append("@MetaData({");
-    List<String> all = metaData.all();
+    final List<String> all = metaData.all();
     for (int i = 0, size = all.size(); i < size; i++) {
       if (i > 0) {
         writer.append(", ");
@@ -91,13 +91,12 @@ class SimpleComponentWriter {
     writer.append("public class %s implements Jsonb.GeneratedComponent {", shortName).eol().eol();
   }
 
-
   private void writeImports() {
     importTypes.add(Constants.JSONB);
     importTypes.add(Constants.JSONB_SPI);
     importTypes.addAll(metaData.allImports());
 
-    for (String importType : importTypes) {
+    for (final String importType : importTypes) {
       if (Util.validImportType(importType)) {
         writer.append("import %s;", importType).eol();
       }
@@ -106,7 +105,7 @@ class SimpleComponentWriter {
   }
 
   private void writePackage() {
-    String packageName = metaData.packageName();
+    final String packageName = metaData.packageName();
     if (packageName != null && !packageName.isEmpty()) {
       writer.append("package %s;", packageName).eol().eol();
     }

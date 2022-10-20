@@ -8,11 +8,11 @@ import io.avaje.jsonb.spi.Generated;
 import io.avaje.jsonb.spi.PropertyNames;
 import io.avaje.jsonb.spi.ViewBuilder;
 import io.avaje.jsonb.spi.ViewBuilderAware;
-
 import java.lang.invoke.MethodHandle;
 
 @Generated
-public final class MyBasicJsonAdapter extends JsonAdapter<StreamBasicTest.MyBasic> implements ViewBuilderAware {
+public final class MyBasicJsonAdapter extends JsonAdapter<StreamBasicTest.MyBasic>
+    implements ViewBuilderAware {
 
   // naming convention Match
   // id [int] name:id constructor
@@ -41,8 +41,12 @@ public final class MyBasicJsonAdapter extends JsonAdapter<StreamBasicTest.MyBasi
   @Override
   public void build(ViewBuilder builder, String name, MethodHandle handle) {
     builder.beginObject(name, handle);
-    builder.add("id", pintJsonAdapter, builder.method(StreamBasicTest.MyBasic.class, "id", int.class));
-    builder.add("name", stringJsonAdapter, builder.method(StreamBasicTest.MyBasic.class, "name", String.class));
+    builder.add(
+        "id", pintJsonAdapter, builder.method(StreamBasicTest.MyBasic.class, "id", int.class));
+    builder.add(
+        "name",
+        stringJsonAdapter,
+        builder.method(StreamBasicTest.MyBasic.class, "name", String.class));
     builder.endObject();
   }
 
@@ -60,8 +64,8 @@ public final class MyBasicJsonAdapter extends JsonAdapter<StreamBasicTest.MyBasi
   @Override
   public StreamBasicTest.MyBasic fromJson(JsonReader reader) {
     // variables to read json values into, constructor params don't need _set$ flags
-    int        _val$id = 0;
-    String     _val$name = null;
+    int _val$id = 0;
+    String _val$name = null;
 
     // read json
     reader.beginObject();
@@ -69,16 +73,21 @@ public final class MyBasicJsonAdapter extends JsonAdapter<StreamBasicTest.MyBasi
     while (reader.hasNextField()) {
       String fieldName = reader.nextField();
       switch (fieldName) {
-        case "id": {
-          _val$id = pintJsonAdapter.fromJson(reader); break;
-        }
-        case "name": {
-          _val$name = stringJsonAdapter.fromJson(reader); break;
-        }
-        default: {
-          reader.unmappedField(fieldName);
-          reader.skipValue();
-        }
+        case "id":
+          {
+            _val$id = pintJsonAdapter.fromJson(reader);
+            break;
+          }
+        case "name":
+          {
+            _val$name = stringJsonAdapter.fromJson(reader);
+            break;
+          }
+        default:
+          {
+            reader.unmappedField(fieldName);
+            reader.skipValue();
+          }
       }
     }
     reader.endObject();

@@ -1,14 +1,13 @@
 package io.avaje.jsonb.stream;
 
-import io.avaje.jsonb.JsonReader;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.avaje.jsonb.JsonReader;
 import java.io.StringReader;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
 
 class JsonReadAdapterTest {
 
@@ -16,21 +15,30 @@ class JsonReadAdapterTest {
 
   @Test
   void via_jreader() {
-    char[] ch = new char[1000];
-    byte[] by = new byte[1000];
-    JParser jr = new JParser(ch, by, 0, JParser.ErrorInfo.MINIMAL, JParser.DoublePrecision.DEFAULT, JParser.UnknownNumberParsing.BIGDECIMAL, 100, 50_000);
+    final char[] ch = new char[1000];
+    final byte[] by = new byte[1000];
+    final JParser jr =
+        new JParser(
+            ch,
+            by,
+            0,
+            JParser.ErrorInfo.MINIMAL,
+            JParser.DoublePrecision.DEFAULT,
+            JParser.UnknownNumberParsing.BIGDECIMAL,
+            100,
+            50_000);
 
-    byte[] bytes = jsonStringInput.getBytes(StandardCharsets.UTF_8);
+    final byte[] bytes = jsonStringInput.getBytes(StandardCharsets.UTF_8);
     jr.process(bytes, bytes.length);
 
-    JsonReadAdapter reader = new JsonReadAdapter(jr, true);
+    final JsonReadAdapter reader = new JsonReadAdapter(jr, true);
     readExampleWithAsserts(reader);
     reader.close();
   }
 
   @Test
   void via_adapter_usingReader() {
-    JsonStream adapter = new JsonStream(false, false, false);
+    final JsonStream adapter = new JsonStream(false, false, false);
     try (JsonReader reader = adapter.reader(new StringReader(jsonStringInput))) {
       readExampleWithAsserts(reader);
     }
@@ -41,7 +49,7 @@ class JsonReadAdapterTest {
 
   @Test
   void via_adapter_usingString() {
-    JsonStream adapter = new JsonStream(false, false, false);
+    final JsonStream adapter = new JsonStream(false, false, false);
     try (JsonReader reader = adapter.reader(jsonStringInput)) {
       readExampleWithAsserts(reader);
     }
@@ -65,9 +73,10 @@ class JsonReadAdapterTest {
 
   @Test
   void bigInt() {
-    String input = "{\"name\":\"roberto\", \"val0\": 123, \"val1\": \"1234567890123456789\", \"val2\": 1234567890123456789 , \"notes\" :\"end\"}";
+    final String input =
+        "{\"name\":\"roberto\", \"val0\": 123, \"val1\": \"1234567890123456789\", \"val2\": 1234567890123456789 , \"notes\" :\"end\"}";
 
-    JsonStream adapter = JsonStream.builder().failOnUnknown(true).build();
+    final JsonStream adapter = JsonStream.builder().failOnUnknown(true).build();
     try (JsonReader reader = adapter.reader(input)) {
       reader.beginObject();
       assertTrue(reader.hasNextField());

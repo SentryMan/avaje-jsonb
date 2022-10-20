@@ -3,7 +3,6 @@ package io.avaje.jsonb.stream;
 import io.avaje.jsonb.JsonIoException;
 import io.avaje.jsonb.JsonWriter;
 import io.avaje.jsonb.spi.PropertyNames;
-
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -28,7 +27,7 @@ final class JsonWriteAdapter implements JsonWriter {
   @SuppressWarnings("unchecked")
   @Override
   public <T> T unwrap(Class<T> underlying) {
-    return (T)generator;
+    return (T) generator;
   }
 
   @Override
@@ -76,7 +75,7 @@ final class JsonWriteAdapter implements JsonWriter {
     try {
       writeDeferredName();
       generator.startArray();
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new JsonIoException(e);
     }
   }
@@ -91,7 +90,7 @@ final class JsonWriteAdapter implements JsonWriter {
     try {
       writeDeferredName();
       generator.startObject();
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new JsonIoException(e);
     }
   }
@@ -138,7 +137,7 @@ final class JsonWriteAdapter implements JsonWriter {
         writeDeferredName();
         generator.startArray();
         generator.endArray();
-      } catch (IOException e) {
+      } catch (final IOException e) {
         throw new JsonIoException(e);
       }
     } else if (namePos >= 0) {
@@ -159,7 +158,7 @@ final class JsonWriteAdapter implements JsonWriter {
       } else if (deferredName != null) {
         deferredName = null;
       }
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new JsonIoException(e);
     }
   }
@@ -172,7 +171,7 @@ final class JsonWriteAdapter implements JsonWriter {
       try {
         writeDeferredName();
         generator.write(value);
-      } catch (IOException e) {
+      } catch (final IOException e) {
         throw new JsonIoException(e);
       }
     }
@@ -183,18 +182,17 @@ final class JsonWriteAdapter implements JsonWriter {
     try {
       writeDeferredName();
       generator.write(value);
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new JsonIoException(e);
     }
   }
-
 
   @Override
   public void value(int value) {
     try {
       writeDeferredName();
       generator.write(value);
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new JsonIoException(e);
     }
   }
@@ -204,7 +202,7 @@ final class JsonWriteAdapter implements JsonWriter {
     try {
       writeDeferredName();
       generator.write(value);
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new JsonIoException(e);
     }
   }
@@ -214,7 +212,7 @@ final class JsonWriteAdapter implements JsonWriter {
     try {
       writeDeferredName();
       generator.write(value);
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new JsonIoException(e);
     }
   }
@@ -227,7 +225,7 @@ final class JsonWriteAdapter implements JsonWriter {
       try {
         writeDeferredName();
         generator.write(value);
-      } catch (IOException e) {
+      } catch (final IOException e) {
         throw new JsonIoException(e);
       }
     }
@@ -241,7 +239,7 @@ final class JsonWriteAdapter implements JsonWriter {
       try {
         writeDeferredName();
         generator.write(value);
-      } catch (IOException e) {
+      } catch (final IOException e) {
         throw new JsonIoException(e);
       }
     }
@@ -255,7 +253,7 @@ final class JsonWriteAdapter implements JsonWriter {
       try {
         writeDeferredName();
         generator.write(value);
-      } catch (IOException e) {
+      } catch (final IOException e) {
         throw new JsonIoException(e);
       }
     }
@@ -269,7 +267,7 @@ final class JsonWriteAdapter implements JsonWriter {
       try {
         writeDeferredName();
         generator.write(value);
-      } catch (IOException e) {
+      } catch (final IOException e) {
         throw new JsonIoException(e);
       }
     }
@@ -283,7 +281,7 @@ final class JsonWriteAdapter implements JsonWriter {
       try {
         writeDeferredName();
         generator.write(value);
-      } catch (IOException e) {
+      } catch (final IOException e) {
         throw new JsonIoException(e);
       }
     }
@@ -297,7 +295,7 @@ final class JsonWriteAdapter implements JsonWriter {
       try {
         writeDeferredName();
         generator.write(value);
-      } catch (IOException e) {
+      } catch (final IOException e) {
         throw new JsonIoException(e);
       }
     }
@@ -311,7 +309,7 @@ final class JsonWriteAdapter implements JsonWriter {
       try {
         writeDeferredName();
         generator.write(value);
-      } catch (IOException e) {
+      } catch (final IOException e) {
         throw new JsonIoException(e);
       }
     }
@@ -325,7 +323,7 @@ final class JsonWriteAdapter implements JsonWriter {
       try {
         writeDeferredName();
         generator.writeRaw(value);
-      } catch (IOException e) {
+      } catch (final IOException e) {
         throw new JsonIoException(e);
       }
     }
@@ -367,7 +365,7 @@ final class JsonWriteAdapter implements JsonWriter {
 
   private void writeList(List<?> value) {
     beginArray();
-    for (Object element : value) {
+    for (final Object element : value) {
       jsonValue(element);
     }
     endArray();
@@ -375,7 +373,7 @@ final class JsonWriteAdapter implements JsonWriter {
 
   private void writeCollection(Collection<?> value) {
     beginArray();
-    for (Object element : value) {
+    for (final Object element : value) {
       jsonValue(element);
     }
     endArray();
@@ -383,13 +381,15 @@ final class JsonWriteAdapter implements JsonWriter {
 
   private void writeMap(Map<?, ?> value) {
     beginObject();
-    for (Map.Entry<?, ?> entry : value.entrySet()) {
-      Object key = entry.getKey();
+    for (final Map.Entry<?, ?> entry : value.entrySet()) {
+      final Object key = entry.getKey();
       if (!(key instanceof String)) {
         throw new IllegalArgumentException(
-          key == null ? "Map keys must be non-null" : "Map keys must be of type String: " + key.getClass().getName());
+            key == null
+                ? "Map keys must be non-null"
+                : "Map keys must be of type String: " + key.getClass().getName());
       }
-      name(((String) key));
+      name((String) key);
       jsonValue(entry.getValue());
     }
     endObject();

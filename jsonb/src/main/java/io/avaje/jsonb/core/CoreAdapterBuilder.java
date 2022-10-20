@@ -18,14 +18,17 @@ package io.avaje.jsonb.core;
 import io.avaje.jsonb.JsonAdapter;
 import io.avaje.jsonb.JsonReader;
 import io.avaje.jsonb.JsonWriter;
-
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
-/**
- * Builds and caches the JsonAdapter adapters for DJsonb.
- */
+/** Builds and caches the JsonAdapter adapters for DJsonb. */
 class CoreAdapterBuilder {
 
   private final DJsonb context;
@@ -34,7 +37,8 @@ class CoreAdapterBuilder {
   private final Map<Object, JsonAdapter<?>> adapterCache = new LinkedHashMap<>();
   private final ReentrantLock lock = new ReentrantLock();
 
-  CoreAdapterBuilder(DJsonb context, List<JsonAdapter.Factory> userFactories, boolean mathAsString) {
+  CoreAdapterBuilder(
+      DJsonb context, List<JsonAdapter.Factory> userFactories, boolean mathAsString) {
     this.context = context;
     this.factories = new ArrayList<>();
     this.factories.addAll(userFactories);
@@ -46,14 +50,12 @@ class CoreAdapterBuilder {
     this.factories.add(ArrayAdapter.FACTORY);
   }
 
-  /**
-   * Return the adapter from cache if exists else return null.
-   */
+  /** Return the adapter from cache if exists else return null. */
   @SuppressWarnings("unchecked")
   <T> JsonAdapter<T> get(Object cacheKey) {
     lock.lock();
     try {
-      JsonAdapter<?> result = adapterCache.get(cacheKey);
+      final JsonAdapter<?> result = adapterCache.get(cacheKey);
       if (result != null) {
         return (JsonAdapter<T>) result;
       }
@@ -63,16 +65,12 @@ class CoreAdapterBuilder {
     return null;
   }
 
-  /**
-   * Build for the simple non-annotated type case.
-   */
+  /** Build for the simple non-annotated type case. */
   <T> JsonAdapter<T> build(Type type) {
     return build(type, type);
   }
 
-  /**
-   * Build given type and annotations.
-   */
+  /** Build given type and annotations. */
   @SuppressWarnings("unchecked")
   <T> JsonAdapter<T> build(Type type, Object cacheKey) {
     LookupChain lookupChain = lookupChainThreadLocal.get();
@@ -82,14 +80,14 @@ class CoreAdapterBuilder {
     }
 
     boolean success = false;
-    JsonAdapter<T> adapterFromCall = lookupChain.push(type, cacheKey);
+    final JsonAdapter<T> adapterFromCall = lookupChain.push(type, cacheKey);
     try {
       if (adapterFromCall != null) {
         return adapterFromCall;
       }
       // Ask each factory to create the JSON adapter.
-      for (JsonAdapter.Factory factory : factories) {
-        JsonAdapter<T> result = (JsonAdapter<T>) factory.create(type, context);
+      for (final JsonAdapter.Factory factory : factories) {
+        final JsonAdapter<T> result = (JsonAdapter<T>) factory.create(type, context);
         if (result != null) {
           // Success! Notify the LookupChain so it is cached and can be used by re-entrant calls.
           lookupChain.adapterFound(result);
@@ -97,8 +95,9 @@ class CoreAdapterBuilder {
           return result;
         }
       }
-      throw new IllegalArgumentException("No JsonAdapter for " + type + ". Perhaps needs @Json or @Json.Import?");
-    } catch (IllegalArgumentException e) {
+      throw new IllegalArgumentException(
+          "No JsonAdapter for " + type + ". Perhaps needs @Json or @Json.Import?");
+    } catch (final IllegalArgumentException e) {
       throw lookupChain.exceptionWithLookupStack(e);
     } finally {
       lookupChain.pop(success);
@@ -136,26 +135,24 @@ class CoreAdapterBuilder {
      */
     <T> JsonAdapter<T> push(Type type, Object cacheKey) {
       // Try to find a lookup with the same key for the same call.
-      for (Lookup<?> lookup : callLookups) {
+      for (final Lookup<?> lookup : callLookups) {
         if (lookup.cacheKey.equals(cacheKey)) {
-          Lookup<T> hit = (Lookup<T>) lookup;
+          final Lookup<T> hit = (Lookup<T>) lookup;
           stack.add(hit);
           return hit.adapter != null ? hit.adapter : hit;
         }
       }
 
       // We might need to know about this cache key later in this call. Prepare for that.
-      Lookup<Object> lookup = new Lookup<>(type, cacheKey);
+      final Lookup<Object> lookup = new Lookup<>(type, cacheKey);
       callLookups.add(lookup);
       stack.add(lookup);
       return null;
     }
 
-    /**
-     * Sets the adapter result of the current lookup.
-     */
+    /** Sets the adapter result of the current lookup. */
     <T> void adapterFound(JsonAdapter<T> result) {
-      Lookup<T> currentLookup = (Lookup<T>) stack.getLast();
+      final Lookup<T> currentLookup = (Lookup<T>) stack.getLast();
       currentLookup.adapter = result;
     }
 
@@ -173,8 +170,8 @@ class CoreAdapterBuilder {
       if (success) {
         lock.lock();
         try {
-          for (Lookup<?> lookup : callLookups) {
-            JsonAdapter<?> replaced = adapterCache.put(lookup.cacheKey, lookup.adapter);
+          for (final Lookup<?> lookup : callLookups) {
+            final JsonAdapter<?> replaced = adapterCache.put(lookup.cacheKey, lookup.adapter);
             if (replaced != null) {
               ((Lookup<Object>) lookup).adapter = (JsonAdapter<Object>) replaced;
               adapterCache.put(lookup.cacheKey, replaced);
@@ -192,22 +189,20 @@ class CoreAdapterBuilder {
         return e;
       }
       exceptionAnnotated = true;
-      int size = stack.size();
+      final int size = stack.size();
       if (size == 1) {
         return e;
       }
-      StringBuilder errorMessageBuilder = new StringBuilder(e.getMessage());
-      for (Iterator<Lookup<?>> i = stack.descendingIterator(); i.hasNext(); ) {
-        Lookup<?> lookup = i.next();
+      final StringBuilder errorMessageBuilder = new StringBuilder(e.getMessage());
+      for (final Iterator<Lookup<?>> i = stack.descendingIterator(); i.hasNext(); ) {
+        final Lookup<?> lookup = i.next();
         errorMessageBuilder.append("\nfor ").append(lookup.type);
       }
       return new IllegalArgumentException(errorMessageBuilder.toString(), e);
     }
   }
 
-  /**
-   * This class implements {@code JsonAdapter} so it can be used as a stub for re-entrant calls.
-   */
+  /** This class implements {@code JsonAdapter} so it can be used as a stub for re-entrant calls. */
   static final class Lookup<T> extends JsonAdapter<T> {
     final Type type;
     final Object cacheKey;

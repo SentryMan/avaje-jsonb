@@ -1,12 +1,5 @@
 package io.avaje.jsonb.generator;
 
-import javax.annotation.processing.FilerException;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.AnnotationValue;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.TypeElement;
-import javax.tools.FileObject;
-import javax.tools.StandardLocation;
 import java.io.FileNotFoundException;
 import java.io.LineNumberReader;
 import java.io.Reader;
@@ -15,6 +8,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.processing.FilerException;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
+import javax.tools.FileObject;
+import javax.tools.StandardLocation;
 
 class ComponentReader {
 
@@ -28,9 +28,9 @@ class ComponentReader {
   }
 
   void read() {
-    String componentFullName = loadMetaInfServices();
+    final String componentFullName = loadMetaInfServices();
     if (componentFullName != null) {
-      TypeElement moduleType = ctx.element(componentFullName);
+      final TypeElement moduleType = ctx.element(componentFullName);
       if (moduleType != null) {
         componentMetaData.setFullName(componentFullName);
         readMetaData(moduleType);
@@ -38,14 +38,13 @@ class ComponentReader {
     }
   }
 
-  /**
-   * Read the existing JsonAdapters from the MetaData annotation of the generated component.
-   */
+  /** Read the existing JsonAdapters from the MetaData annotation of the generated component. */
   private void readMetaData(TypeElement moduleType) {
-    for (AnnotationMirror annotationMirror : moduleType.getAnnotationMirrors()) {
+    for (final AnnotationMirror annotationMirror : moduleType.getAnnotationMirrors()) {
       if (META_DATA.equals(annotationMirror.getAnnotationType().toString())) {
-        for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : annotationMirror.getElementValues().entrySet()) {
-          for (Object adapterEntry : (List<?>) entry.getValue().getValue()) {
+        for (final Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry :
+            annotationMirror.getElementValues().entrySet()) {
+          for (final Object adapterEntry : (List<?>) entry.getValue().getValue()) {
             componentMetaData.add(adapterNameFromEntry(adapterEntry));
           }
         }
@@ -64,14 +63,15 @@ class ComponentReader {
 
   private List<String> loadMetaInf() {
     try {
-      FileObject fileObject = ctx.env()
-        .getFiler()
-        .getResource(StandardLocation.CLASS_OUTPUT, "", Constants.META_INF_COMPONENT);
+      final FileObject fileObject =
+          ctx.env()
+              .getFiler()
+              .getResource(StandardLocation.CLASS_OUTPUT, "", Constants.META_INF_COMPONENT);
 
       if (fileObject != null) {
-        List<String> lines = new ArrayList<>();
-        Reader reader = fileObject.openReader(true);
-        LineNumberReader lineReader = new LineNumberReader(reader);
+        final List<String> lines = new ArrayList<>();
+        final Reader reader = fileObject.openReader(true);
+        final LineNumberReader lineReader = new LineNumberReader(reader);
         String line;
         while ((line = lineReader.readLine()) != null) {
           line = line.trim();
@@ -85,14 +85,13 @@ class ComponentReader {
     } catch (FileNotFoundException | NoSuchFileException e) {
       // logDebug("no services file yet");
 
-    } catch (FilerException e) {
+    } catch (final FilerException e) {
       ctx.logDebug("FilerException reading services file");
 
-    } catch (Exception e) {
+    } catch (final Exception e) {
       e.printStackTrace();
       ctx.logWarn("Error reading services file: " + e.getMessage());
     }
     return Collections.emptyList();
   }
-
 }

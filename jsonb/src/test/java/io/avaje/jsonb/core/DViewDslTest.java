@@ -1,28 +1,29 @@
 package io.avaje.jsonb.core;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 class DViewDslTest {
 
   @Test
   void parse() {
-    ViewDsl dsl = new ViewDslParser().parse("id,name");
+    final ViewDsl dsl = new ViewDslParser().parse("id,name");
     assertTrue(dsl.contains("id"));
     assertTrue(dsl.contains("name"));
   }
 
   @Test
   void parse_withExtraBrace() {
-    ViewDsl dsl = new ViewDslParser().parse("(id,name)");
+    final ViewDsl dsl = new ViewDslParser().parse("(id,name)");
     assertTrue(dsl.contains("id"));
     assertTrue(dsl.contains("name"));
   }
 
   @Test
   void parse2() {
-    ViewDsl dsl = new ViewDslParser().parse("id,name,billingAddress(*)");
+    final ViewDsl dsl = new ViewDslParser().parse("id,name,billingAddress(*)");
     assertTrue(dsl.contains("id"));
     assertTrue(dsl.contains("name"));
     assertTrue(dsl.contains("billingAddress"));
@@ -35,7 +36,7 @@ class DViewDslTest {
 
   @Test
   void parse_whiteSpace() {
-    ViewDsl dsl = new ViewDslParser().parse("id , name ,  billingAddress (  * )  ");
+    final ViewDsl dsl = new ViewDslParser().parse("id , name ,  billingAddress (  * )  ");
     assertTrue(dsl.contains("id"));
     assertTrue(dsl.contains("name"));
     assertTrue(dsl.contains("billingAddress"));
@@ -48,7 +49,7 @@ class DViewDslTest {
 
   @Test
   void parse_nestedWithWildCard() {
-    ViewDsl dsl = new ViewDslParser().parse("id,name,billingAddress(*),contacts(lastName)");
+    final ViewDsl dsl = new ViewDslParser().parse("id,name,billingAddress(*),contacts(lastName)");
     assertTrue(dsl.contains("id"));
     assertTrue(dsl.contains("name"));
     assertTrue(dsl.contains("billingAddress"));

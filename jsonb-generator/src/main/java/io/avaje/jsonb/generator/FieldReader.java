@@ -3,7 +3,6 @@ package io.avaje.jsonb.generator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 
@@ -60,7 +59,8 @@ class FieldReader {
       defaultValue = !primitive ? "null" : PrimitiveUtil.defaultValue(shortType);
       final String typeWrapped = PrimitiveUtil.wrap(shortType);
       adapterShortType = "JsonAdapter<" + typeWrapped + ">";
-      adapterFieldName = (primitive ? "p" : "") + Util.initLower(genericType.shortName()) + "JsonAdapter";
+      adapterFieldName =
+          (primitive ? "p" : "") + Util.initLower(genericType.shortName()) + "JsonAdapter";
     }
   }
 
@@ -197,7 +197,9 @@ class FieldReader {
       writeGetValue(writer, varName, ";");
       writer.eol();
       writer.append("%sif (unmapped != null) {", prefix).eol();
-      writer.append("%s for (Map.Entry<String, Object> entry : unmapped.entrySet()) {", prefix).eol();
+      writer
+          .append("%s for (Map.Entry<String, Object> entry : unmapped.entrySet()) {", prefix)
+          .eol();
       writer.append("%s   writer.name(entry.getKey());", prefix).eol();
       writer.append("%s   objectJsonAdapter.toJson(writer, entry.getValue());", prefix).eol();
       writer.append("%s }", prefix).eol();
@@ -252,9 +254,11 @@ class FieldReader {
       writer.append("          reader.skipValue();");
     } else if (defaultConstructor) {
       if (setter != null) {
-        writer.append("          _$%s.%s(%s.fromJson(reader));", varName, setter.getName(), adapterFieldName);
+        writer.append(
+            "          _$%s.%s(%s.fromJson(reader));", varName, setter.getName(), adapterFieldName);
       } else if (publicField) {
-        writer.append("          _$%s.%s = %s.fromJson(reader);", varName, fieldName, adapterFieldName);
+        writer.append(
+            "          _$%s.%s = %s.fromJson(reader);", varName, fieldName, adapterFieldName);
       }
     } else {
       writer.append("          _val$%s = %s.fromJson(reader);", fieldName, adapterFieldName);
@@ -272,9 +276,17 @@ class FieldReader {
       return;
     }
     if (setter != null) {
-      writer.append("%s    if (_set$%s) _$%s.%s(_val$%s);", prefix, fieldName, varName, setter.getName(), fieldName).eol();
+      writer
+          .append(
+              "%s    if (_set$%s) _$%s.%s(_val$%s);",
+              prefix, fieldName, varName, setter.getName(), fieldName)
+          .eol();
     } else if (publicField) {
-      writer.append("%s    if (_set$%s) _$%s.%s = _val$%s;", prefix, fieldName, varName, fieldName, fieldName).eol();
+      writer
+          .append(
+              "%s    if (_set$%s) _$%s.%s = _val$%s;",
+              prefix, fieldName, varName, fieldName, fieldName)
+          .eol();
     }
   }
 
@@ -288,10 +300,18 @@ class FieldReader {
 
   void writeViewBuilder(Append writer, String shortName) {
     if (getter == null) {
-      writer.append("    builder.add(\"%s\", %s, builder.field(%s.class, \"%s\"));", fieldName, adapterFieldName, shortName, fieldName).eol();
+      writer
+          .append(
+              "    builder.add(\"%s\", %s, builder.field(%s.class, \"%s\"));",
+              fieldName, adapterFieldName, shortName, fieldName)
+          .eol();
     } else {
       final String topType = genericType.topType();
-      writer.append("    builder.add(\"%s\", %s, builder.method(%s.class, \"%s\", %s.class));", fieldName, adapterFieldName, shortName, getter.getName(), topType).eol();
+      writer
+          .append(
+              "    builder.add(\"%s\", %s, builder.method(%s.class, \"%s\", %s.class));",
+              fieldName, adapterFieldName, shortName, getter.getName(), topType)
+          .eol();
     }
   }
 }

@@ -1,15 +1,14 @@
 package io.avaje.jsonb.core;
 
+import static java.util.Spliterators.spliteratorUnknownSize;
+import static java.util.stream.StreamSupport.stream;
+
 import io.avaje.jsonb.JsonAdapter;
 import io.avaje.jsonb.JsonReader;
 import io.avaje.jsonb.JsonWriter;
-
 import java.util.Iterator;
 import java.util.Spliterator;
 import java.util.stream.Stream;
-
-import static java.util.Spliterators.spliteratorUnknownSize;
-import static java.util.stream.StreamSupport.stream;
 
 final class StreamAdapter<T> extends JsonAdapter<Stream<T>> implements DJsonClosable<Stream<T>> {
 
@@ -28,15 +27,16 @@ final class StreamAdapter<T> extends JsonAdapter<Stream<T>> implements DJsonClos
 
   @Override
   public Stream<T> fromJson(JsonReader reader) {
-    Iter<T> iterator = new Iter<>(elementAdapter, reader, false);
-    return stream(spliteratorUnknownSize(iterator, Spliterator.ORDERED),false);
+    final Iter<T> iterator = new Iter<>(elementAdapter, reader, false);
+    return stream(spliteratorUnknownSize(iterator, Spliterator.ORDERED), false);
   }
 
   @Override
   public Stream<T> fromJsonWithClose(JsonReader reader) {
     // closing the Stream and consuming all elements closes the JsonReader
-    Iter<T> iterator = new Iter<>(elementAdapter, reader, true);
-    return stream(spliteratorUnknownSize(iterator, Spliterator.ORDERED),false).onClose(reader::close);
+    final Iter<T> iterator = new Iter<>(elementAdapter, reader, true);
+    return stream(spliteratorUnknownSize(iterator, Spliterator.ORDERED), false)
+        .onClose(reader::close);
   }
 
   static class Iter<T> implements Iterator<T> {

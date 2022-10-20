@@ -1,15 +1,14 @@
 package io.avaje.jsonb.jackson;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import io.avaje.jsonb.JsonType;
 import io.avaje.jsonb.Jsonb;
 import io.avaje.jsonb.Types;
-import org.junit.jupiter.api.Test;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class UUIDTest {
 
@@ -38,7 +37,7 @@ class UUIDTest {
 
     Jsonb jsonb = Jsonb.builder().build();
 
-    JsonType<Map<String,UUID>> mapUidType = jsonb.type(Types.mapOf(UUID.class));
+    JsonType<Map<String, UUID>> mapUidType = jsonb.type(Types.mapOf(UUID.class));
     String asJson = mapUidType.toJson(map);
 
     Map<String, UUID> fromJson = mapUidType.fromJson(asJson);
@@ -47,5 +46,4 @@ class UUIDTest {
     assertThat(fromJson.get("k0")).isEqualTo(v0);
     assertThat(fromJson.get("k1")).isEqualTo(v1);
   }
-
 }

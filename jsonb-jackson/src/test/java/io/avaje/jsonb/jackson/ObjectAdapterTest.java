@@ -1,17 +1,16 @@
 package io.avaje.jsonb.jackson;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import io.avaje.jsonb.JsonAdapter;
 import io.avaje.jsonb.JsonType;
 import io.avaje.jsonb.JsonWriter;
 import io.avaje.jsonb.Jsonb;
-import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.List;
 import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class ObjectAdapterTest {
 
@@ -28,7 +27,7 @@ class ObjectAdapterTest {
     Object value = objectAdapter.fromJson(jsonb.reader("{\"id\":42,\"name\":\"rob\"}"));
 
     assertThat(value).isInstanceOf(Map.class);
-    Map<String,Object> asMap = (Map<String, Object>) value;
+    Map<String, Object> asMap = (Map<String, Object>) value;
     assertThat(asMap.get("id")).isEqualTo(42D);
     assertThat(asMap.get("name")).isEqualTo("rob");
 
@@ -40,11 +39,13 @@ class ObjectAdapterTest {
   @Test
   void fromJson_readingListOfMap() throws IOException {
 
-    Object value = objectAdapter.fromJson(jsonb.reader("[{\"id\":42,\"name\":\"rob\"},{\"id\":43,\"name\":\"bob\"}]"));
+    Object value =
+        objectAdapter.fromJson(
+            jsonb.reader("[{\"id\":42,\"name\":\"rob\"},{\"id\":43,\"name\":\"bob\"}]"));
 
     assertThat(value).isInstanceOf(List.class);
 
-    List<Map<String,Object>> asListOfMap = (List<Map<String,Object>>) value;
+    List<Map<String, Object>> asListOfMap = (List<Map<String, Object>>) value;
     assertThat(asListOfMap).hasSize(2);
     assertThat(asListOfMap.get(0).get("id")).isEqualTo(42D);
     assertThat(asListOfMap.get(0).get("name")).isEqualTo("rob");
@@ -57,9 +58,9 @@ class ObjectAdapterTest {
 
     assertThat(asJson).isEqualTo("[{\"id\":42.0,\"name\":\"rob\"},{\"id\":43.0,\"name\":\"bob\"}]");
 
-
     // a bit easier using JsonType compared to JsonAdapter
     String asJson2 = objectType.toJson(value);
-    assertThat(asJson2).isEqualTo("[{\"id\":42.0,\"name\":\"rob\"},{\"id\":43.0,\"name\":\"bob\"}]");
+    assertThat(asJson2)
+        .isEqualTo("[{\"id\":42.0,\"name\":\"rob\"},{\"id\":43.0,\"name\":\"bob\"}]");
   }
 }

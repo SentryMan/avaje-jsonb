@@ -15,33 +15,39 @@
  */
 package io.avaje.jsonb.core;
 
-import io.avaje.jsonb.*;
+import io.avaje.jsonb.JsonAdapter;
+import io.avaje.jsonb.JsonReader;
+import io.avaje.jsonb.JsonWriter;
+import io.avaje.jsonb.Jsonb;
 import io.avaje.jsonb.spi.ViewBuilder;
 import io.avaje.jsonb.spi.ViewBuilderAware;
-
-import java.io.IOException;
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
-/**
- * Converts collection types to JSON arrays containing their converted contents.
- */
-abstract class CollectionAdapter<C extends Collection<T>, T> extends JsonAdapter<C> implements ViewBuilderAware {
+/** Converts collection types to JSON arrays containing their converted contents. */
+abstract class CollectionAdapter<C extends Collection<T>, T> extends JsonAdapter<C>
+    implements ViewBuilderAware {
 
-  public static final JsonAdapter.Factory FACTORY = (type, jsonb) -> {
-    Class<?> rawType = Util.rawType(type);
-    if (rawType == List.class || rawType == Collection.class) {
-      return newListAdapter(type, jsonb).nullSafe();
-    } else if (rawType == Set.class) {
-      return newSetAdapter(type, jsonb).nullSafe();
-    }
-    return null;
-  };
+  public static final JsonAdapter.Factory FACTORY =
+      (type, jsonb) -> {
+        final Class<?> rawType = Util.rawType(type);
+        if (rawType == List.class || rawType == Collection.class) {
+          return newListAdapter(type, jsonb).nullSafe();
+        }
+        if (rawType == Set.class) {
+          return newSetAdapter(type, jsonb).nullSafe();
+        }
+        return null;
+      };
 
   /**
-   * Helper that takes a base JsonAdapter and returns another JsonAdapter for a List
-   * containing elements of the base type.
+   * Helper that takes a base JsonAdapter and returns another JsonAdapter for a List containing
+   * elements of the base type.
    */
   static <T> JsonAdapter<List<T>> listOf(JsonAdapter<T> base) {
     return new CollectionAdapter<List<T>, T>(base) {
@@ -62,8 +68,8 @@ abstract class CollectionAdapter<C extends Collection<T>, T> extends JsonAdapter
   }
 
   static <T> JsonAdapter<Collection<T>> newListAdapter(Type type, Jsonb jsonb) {
-    Type elementType = Util.collectionElementType(type);
-    JsonAdapter<T> elementAdapter = jsonb.adapter(elementType);
+    final Type elementType = Util.collectionElementType(type);
+    final JsonAdapter<T> elementAdapter = jsonb.adapter(elementType);
     return new CollectionAdapter<Collection<T>, T>(elementAdapter) {
       @Override
       Collection<T> newCollection() {
@@ -73,8 +79,8 @@ abstract class CollectionAdapter<C extends Collection<T>, T> extends JsonAdapter
   }
 
   static <T> JsonAdapter<Set<T>> newSetAdapter(Type type, Jsonb jsonb) {
-    Type elementType = Util.collectionElementType(type);
-    JsonAdapter<T> elementAdapter = jsonb.adapter(elementType);
+    final Type elementType = Util.collectionElementType(type);
+    final JsonAdapter<T> elementAdapter = jsonb.adapter(elementType);
     return new CollectionAdapter<Set<T>, T>(elementAdapter) {
       @Override
       Set<T> newCollection() {
@@ -108,7 +114,7 @@ abstract class CollectionAdapter<C extends Collection<T>, T> extends JsonAdapter
 
   @Override
   public C fromJson(JsonReader reader) {
-    C result = newCollection();
+    final C result = newCollection();
     reader.beginArray();
     while (reader.hasNextElement()) {
       result.add(elementAdapter.fromJson(reader));
@@ -124,7 +130,7 @@ abstract class CollectionAdapter<C extends Collection<T>, T> extends JsonAdapter
       return;
     }
     writer.beginArray();
-    for (T element : value) {
+    for (final T element : value) {
       elementAdapter.toJson(writer, element);
     }
     writer.endArray();

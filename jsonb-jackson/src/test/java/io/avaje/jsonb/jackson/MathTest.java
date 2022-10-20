@@ -1,14 +1,13 @@
 package io.avaje.jsonb.jackson;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import io.avaje.jsonb.JsonType;
 import io.avaje.jsonb.Jsonb;
-import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class MathTest {
 

@@ -16,8 +16,8 @@
 package io.avaje.jsonb;
 
 /**
- * Thrown when the data being parsed is not encoded as valid JSON,
- * method invocation fails for json views, or and underlying IOException occurs.
+ * Thrown when the data being parsed is not encoded as valid JSON, method invocation fails for json
+ * views, or and underlying IOException occurs.
  */
 public class JsonException extends RuntimeException {
 

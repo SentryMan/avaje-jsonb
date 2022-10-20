@@ -9,17 +9,17 @@ class AdapterName {
   final String fullName;
 
   AdapterName(TypeElement origin) {
-    String originName = origin.getQualifiedName().toString();
-    String name = origin.getSimpleName().toString();
+    final String originName = origin.getQualifiedName().toString();
+    final String name = origin.getSimpleName().toString();
     String originPackage = Util.packageOf(originName);
     if (origin.getNestingKind().isNested()) {
-      String parent = Util.shortName(originPackage);
+      final String parent = Util.shortName(originPackage);
       originPackage = Util.packageOf(originPackage);
       shortName = parent + "$" + name;
     } else {
       shortName = name;
     }
-    this.adapterPackage = originPackage.equals("") ? "jsonb" : originPackage + ".jsonb";
+    this.adapterPackage = "".equals(originPackage) ? "jsonb" : originPackage + ".jsonb";
     this.fullName = adapterPackage + "." + shortName + "JsonAdapter";
   }
 

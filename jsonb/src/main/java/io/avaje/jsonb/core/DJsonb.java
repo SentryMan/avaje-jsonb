@@ -1,23 +1,37 @@
 package io.avaje.jsonb.core;
 
-import io.avaje.jsonb.*;
-import io.avaje.jsonb.spi.*;
-import io.avaje.jsonb.stream.JsonStream;
+import static io.avaje.jsonb.core.Util.canonicalize;
+import static io.avaje.jsonb.core.Util.canonicalizeClass;
+import static io.avaje.jsonb.core.Util.removeSubtypeWildcard;
+import static java.util.Objects.requireNonNull;
 
+import io.avaje.jsonb.JsonAdapter;
+import io.avaje.jsonb.JsonReader;
+import io.avaje.jsonb.JsonType;
+import io.avaje.jsonb.JsonView;
+import io.avaje.jsonb.JsonWriter;
+import io.avaje.jsonb.Jsonb;
+import io.avaje.jsonb.JsonbComponent;
+import io.avaje.jsonb.spi.AdapterFactory;
+import io.avaje.jsonb.spi.BufferedJsonWriter;
+import io.avaje.jsonb.spi.BytesJsonWriter;
+import io.avaje.jsonb.spi.JsonStreamAdapter;
+import io.avaje.jsonb.spi.PropertyNames;
+import io.avaje.jsonb.stream.JsonStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static io.avaje.jsonb.core.Util.*;
-import static java.util.Objects.requireNonNull;
-
-/**
- * Default implementation of Jsonb.
- */
+/** Default implementation of Jsonb. */
 class DJsonb implements Jsonb {
 
   private final CoreAdapterBuilder builder;
@@ -26,12 +40,18 @@ class DJsonb implements Jsonb {
   private final ConcurrentHashMap<ViewKey, JsonView<?>> viewCache = new ConcurrentHashMap<>();
   private final JsonType<Object> anyType;
 
-  DJsonb(JsonStreamAdapter adapter, List<JsonAdapter.Factory> factories, boolean serializeNulls, boolean serializeEmpty, boolean failOnUnknown, boolean mathAsString) {
+  DJsonb(
+      JsonStreamAdapter adapter,
+      List<JsonAdapter.Factory> factories,
+      boolean serializeNulls,
+      boolean serializeEmpty,
+      boolean failOnUnknown,
+      boolean mathAsString) {
     this.builder = new CoreAdapterBuilder(this, factories, mathAsString);
     if (adapter != null) {
       this.io = adapter;
     } else {
-      Iterator<AdapterFactory> iterator = ServiceLoader.load(AdapterFactory.class).iterator();
+      final Iterator<AdapterFactory> iterator = ServiceLoader.load(AdapterFactory.class).iterator();
       if (iterator.hasNext()) {
         this.io = iterator.next().create(serializeNulls, serializeEmpty, failOnUnknown);
       } else {
@@ -132,13 +152,14 @@ class DJsonb implements Jsonb {
 
   @SuppressWarnings("unchecked")
   private <T> JsonType<T> typeWithCache(Type type) {
-    return (JsonType<T>) typeCache.computeIfAbsent(type, _type -> new DJsonType<>(this, _type, adapter(_type)));
+    return (JsonType<T>)
+        typeCache.computeIfAbsent(type, _type -> new DJsonType<>(this, _type, adapter(_type)));
   }
 
   @Override
   public <T> JsonAdapter<T> adapter(Class<T> cls) {
-    Type cacheKey = canonicalizeClass(requireNonNull(cls));
-    JsonAdapter<T> result = builder.get(cacheKey);
+    final Type cacheKey = canonicalizeClass(requireNonNull(cls));
+    final JsonAdapter<T> result = builder.get(cacheKey);
     if (result != null) {
       return result;
     }
@@ -148,8 +169,8 @@ class DJsonb implements Jsonb {
   @Override
   public <T> JsonAdapter<T> adapter(Type type) {
     type = removeSubtypeWildcard(canonicalize(requireNonNull(type)));
-    Object cacheKey = type;
-    JsonAdapter<T> result = builder.get(cacheKey);
+    final Object cacheKey = type;
+    final JsonAdapter<T> result = builder.get(cacheKey);
     if (result != null) {
       return result;
     }
@@ -168,15 +189,18 @@ class DJsonb implements Jsonb {
   @SuppressWarnings("unchecked")
   <T> JsonView<T> buildView(final String dsl, final JsonAdapter<T> adapter, final Type type) {
     final ViewKey key = new ViewKey(dsl, type);
-    return (JsonView<T>) viewCache.computeIfAbsent(key, o -> {
-      try {
-        ViewBuilder viewBuilder = new ViewBuilder(ViewDsl.parse(dsl));
-        adapter.viewBuild().build(viewBuilder);
-        return viewBuilder.build(this);
-      } catch (Throwable e) {
-        throw new IllegalStateException(e);
-      }
-    });
+    return (JsonView<T>)
+        viewCache.computeIfAbsent(
+            key,
+            o -> {
+              try {
+                final ViewBuilder viewBuilder = new ViewBuilder(ViewDsl.parse(dsl));
+                adapter.viewBuild().build(viewBuilder);
+                return viewBuilder.build(this);
+              } catch (final Throwable e) {
+                throw new IllegalStateException(e);
+              }
+            });
   }
 
   static final class ViewKey {
@@ -192,7 +216,7 @@ class DJsonb implements Jsonb {
     public boolean equals(Object o) {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
-      ViewKey viewKey = (ViewKey) o;
+      final ViewKey viewKey = (ViewKey) o;
       return dsl.equals(viewKey.dsl) && type.equals(viewKey.type);
     }
 
@@ -202,9 +226,7 @@ class DJsonb implements Jsonb {
     }
   }
 
-  /**
-   * Implementation of Jsonb.Builder.
-   */
+  /** Implementation of Jsonb.Builder. */
   static final class DBuilder implements Jsonb.Builder {
 
     private final List<JsonAdapter.Factory> factories = new ArrayList<>();
@@ -268,10 +290,10 @@ class DJsonb implements Jsonb {
 
     private void registerComponents() {
       // first register all user defined JsonbComponent
-      for (JsonbComponent next : ServiceLoader.load(JsonbComponent.class)) {
+      for (final JsonbComponent next : ServiceLoader.load(JsonbComponent.class)) {
         next.register(this);
       }
-      for (GeneratedComponent next : ServiceLoader.load(GeneratedComponent.class)) {
+      for (final GeneratedComponent next : ServiceLoader.load(GeneratedComponent.class)) {
         next.register(this);
       }
     }
@@ -279,7 +301,8 @@ class DJsonb implements Jsonb {
     @Override
     public DJsonb build() {
       registerComponents();
-      return new DJsonb(adapter, factories, serializeNulls, serializeEmpty, failOnUnknown, mathTypesAsString);
+      return new DJsonb(
+          adapter, factories, serializeNulls, serializeEmpty, failOnUnknown, mathTypesAsString);
     }
 
     static <T> JsonAdapter.Factory newAdapterFactory(Type type, JsonAdapter<T> jsonAdapter) {
@@ -291,7 +314,8 @@ class DJsonb implements Jsonb {
     static <T> JsonAdapter.Factory newAdapterFactory(Type type, AdapterBuilder builder) {
       requireNonNull(type);
       requireNonNull(builder);
-      return (targetType, jsonb) -> simpleMatch(type, targetType) ? builder.build(jsonb).nullSafe() : null;
+      return (targetType, jsonb) ->
+          simpleMatch(type, targetType) ? builder.build(jsonb).nullSafe() : null;
     }
   }
 

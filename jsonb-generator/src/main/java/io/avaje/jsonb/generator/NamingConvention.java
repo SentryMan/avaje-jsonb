@@ -23,14 +23,22 @@ class NamingConvention {
 
   Convert init(Json.Naming naming) {
     switch (naming) {
-      case Match: return fieldName -> fieldName;
-      case LowerHyphen: return new LowerExtra('-');
-      case LowerUnderscore: return new LowerExtra('_');
-      case LowerSpace: return new LowerExtra(' ');
-      case UpperCamel: return new UpperCamel();
-      case UpperUnderscore: return new UpperExtra('_');
-      case UpperHyphen: return new UpperExtra('-');
-      case UpperSpace: return new UpperExtra(' ');
+      case Match:
+        return fieldName -> fieldName;
+      case LowerHyphen:
+        return new LowerExtra('-');
+      case LowerUnderscore:
+        return new LowerExtra('_');
+      case LowerSpace:
+        return new LowerExtra(' ');
+      case UpperCamel:
+        return new UpperCamel();
+      case UpperUnderscore:
+        return new UpperExtra('_');
+      case UpperHyphen:
+        return new UpperExtra('-');
+      case UpperSpace:
+        return new UpperExtra(' ');
     }
     throw new IllegalStateException();
   }
@@ -45,13 +53,14 @@ class NamingConvention {
 
   static class UpperCamel implements Convert {
 
+    @Override
     public String convert(String name) {
       if (name.toLowerCase().equals(name)) {
         return name.toUpperCase();
       }
-      StringBuilder sb = new StringBuilder(name.length());
+      final StringBuilder sb = new StringBuilder(name.length());
       boolean change = true;
-      for (char ch : name.toCharArray()) {
+      for (final char ch : name.toCharArray()) {
         if (change && Character.isLowerCase(ch)) {
           sb.append(Character.toUpperCase(ch));
           change = false;
@@ -73,11 +82,11 @@ class NamingConvention {
 
     @Override
     public String convert(String name) {
-      StringBuilder sb = new StringBuilder(name.length());
+      final StringBuilder sb = new StringBuilder(name.length());
       boolean upper = false;
-      for (char ch : name.toCharArray()) {
+      for (final char ch : name.toCharArray()) {
         if (Character.isUpperCase(ch)) {
-          if (!upper){
+          if (!upper) {
             sb.append(extra);
           }
           sb.append(Character.toLowerCase(ch));
@@ -101,11 +110,11 @@ class NamingConvention {
 
     @Override
     public String convert(String name) {
-      StringBuilder sb = new StringBuilder(name.length());
+      final StringBuilder sb = new StringBuilder(name.length());
       boolean upper = false;
-      for (char ch : name.toCharArray()) {
+      for (final char ch : name.toCharArray()) {
         if (Character.isUpperCase(ch)) {
-          if (!upper){
+          if (!upper) {
             sb.append(extra);
           }
           sb.append(ch);
@@ -118,5 +127,4 @@ class NamingConvention {
       return sb.toString();
     }
   }
-
 }

@@ -16,160 +16,109 @@
 package io.avaje.jsonb;
 
 import io.avaje.jsonb.spi.PropertyNames;
-
 import java.io.Closeable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-/**
- * Reads json content as a stream of JSON tokens and content.
- */
+/** Reads json content as a stream of JSON tokens and content. */
 public interface JsonReader extends Closeable {
 
   /**
    * Set the current property names.
-   * <p>
-   * Can be used by the reader to optimise the reading of known names.
+   *
+   * <p>Can be used by the reader to optimise the reading of known names.
    */
   void names(PropertyNames names);
 
-  /**
-   * Read the beginning of an ARRAY or x-json-stream (new line delimited json content).
-   */
+  /** Read the beginning of an ARRAY or x-json-stream (new line delimited json content). */
   default void beginStream() {
     beginArray();
   }
 
-  /**
-   * Read the end of an ARRAY or x-json-stream (new line delimited json content).
-   */
+  /** Read the end of an ARRAY or x-json-stream (new line delimited json content). */
   default void endStream() {
     endArray();
   }
 
-  /**
-   * Read array begin.
-   */
+  /** Read array begin. */
   void beginArray();
 
-  /**
-   * Read array end.
-   */
+  /** Read array end. */
   void endArray();
 
-  /**
-   * Return true if there is a next element in an ARRAY.
-   */
+  /** Return true if there is a next element in an ARRAY. */
   boolean hasNextElement();
 
-  /**
-   * Read begin object.
-   */
+  /** Read begin object. */
   void beginObject();
 
-  /**
-   * Read end object.
-   */
+  /** Read end object. */
   void endObject();
 
-  /**
-   * Return true if there is a next field to be read in an OBJECT.
-   */
+  /** Return true if there is a next field to be read in an OBJECT. */
   boolean hasNextField();
 
-  /**
-   * Return the next field.
-   */
+  /** Return the next field. */
   String nextField();
 
-  /**
-   * Return true if the value to be read is a null.
-   */
+  /** Return true if the value to be read is a null. */
   boolean isNullValue();
 
-  /**
-   * Read and return the next value as a boolean.
-   */
+  /** Read and return the next value as a boolean. */
   boolean readBoolean();
 
-  /**
-   * Read and return the next value as an int.
-   */
+  /** Read and return the next value as an int. */
   int readInt();
 
-  /**
-   * Read and return the next value as a long.
-   */
+  /** Read and return the next value as a long. */
   long readLong();
 
-  /**
-   * Read and return the next value as a double.
-   */
+  /** Read and return the next value as a double. */
   double readDouble();
 
-  /**
-   * Read and return the next value as a BigDecimal.
-   */
+  /** Read and return the next value as a BigDecimal. */
   BigDecimal readDecimal();
 
-  /**
-   * Read and return the next value as a BigInteger.
-   */
+  /** Read and return the next value as a BigInteger. */
   BigInteger readBigInteger();
 
-  /**
-   * Read and return the next value as String.
-   */
+  /** Read and return the next value as String. */
   String readString();
 
-  /**
-   * Read and return the binary value from base64.
-   */
+  /** Read and return the binary value from base64. */
   byte[] readBinary();
 
-  /**
-   * Read and return raw json content as a String.
-   */
+  /** Read and return raw json content as a String. */
   String readRaw();
 
-  /**
-   * Return the current location. This is typically used when reporting errors.
-   */
+  /** Return the current location. This is typically used when reporting errors. */
   String location();
 
-  /**
-   * Return the current Token.
-   */
+  /** Return the current Token. */
   Token currentToken();
 
-  /**
-   * Close the resources of the reader.
-   */
+  /** Close the resources of the reader. */
+  @Override
   void close();
 
-  /**
-   * Skip the next value.
-   */
+  /** Skip the next value. */
   void skipValue();
 
-  /**
-   * Reading json with an unmapped field, throw an Exception if failOnUnmapped is true.
-   */
+  /** Reading json with an unmapped field, throw an Exception if failOnUnmapped is true. */
   void unmappedField(String fieldName);
 
   /**
    * Explicitly state if the streaming content contains ARRAY '[' and ']' tokens.
-   * <p>
-   * The builtin avaje-jsonb parser detects this automatically. Effectively we only need
-   * to set this when we are using the Jackson core parser.
+   *
+   * <p>The builtin avaje-jsonb parser detects this automatically. Effectively we only need to set
+   * this when we are using the Jackson core parser.
    *
    * <pre>{@code
-   *
-   *  try (JsonReader reader = jsonb.reader(arrayJson)) {
-   *    // content contains ARRAY '[' and ']' tokens, use streamArray(true)
-   *    Stream<MyBasic> asStream = type.stream(reader.streamArray(true));
-   *    asStream.forEach(...);
-   *  }
+   * try (JsonReader reader = jsonb.reader(arrayJson)) {
+   *   // content contains ARRAY '[' and ']' tokens, use streamArray(true)
+   *   Stream<MyBasic> asStream = type.stream(reader.streamArray(true));
+   *   asStream.forEach(...);
+   * }
    *
    * }</pre>
    *
@@ -180,9 +129,7 @@ public interface JsonReader extends Closeable {
     return this;
   }
 
-  /**
-   * A structure, name, or value type in a JSON-encoded string.
-   */
+  /** A structure, name, or value type in a JSON-encoded string. */
   enum Token {
 
     /**
@@ -191,11 +138,12 @@ public interface JsonReader extends Closeable {
      */
     BEGIN_ARRAY,
 
-//    /**
-//     * The closing of a JSON array. Written using {@link JsonWriter#endArray} and read using {@link
-//     * JsonReader#endArray}.
-//     */
-//    END_ARRAY,
+    //    /**
+    //     * The closing of a JSON array. Written using {@link JsonWriter#endArray} and read using
+    // {@link
+    //     * JsonReader#endArray}.
+    //     */
+    //    END_ARRAY,
 
     /**
      * The opening of a JSON object. Written using {@link JsonWriter#beginObject} and read using
@@ -203,21 +151,19 @@ public interface JsonReader extends Closeable {
      */
     BEGIN_OBJECT,
 
-//    /**
-//     * The closing of a JSON object. Written using {@link JsonWriter#endObject} and read using
-//     * {@link JsonReader#endObject}.
-//     */
-//    END_OBJECT,
-//
-//    /**
-//     * A JSON property name. Within objects, tokens alternate between names and their values.
-//     * Written using {@link JsonWriter#name} and read using {@link JsonReader#nextField()}
-//     */
-//    NAME,
+    //    /**
+    //     * The closing of a JSON object. Written using {@link JsonWriter#endObject} and read using
+    //     * {@link JsonReader#endObject}.
+    //     */
+    //    END_OBJECT,
+    //
+    //    /**
+    //     * A JSON property name. Within objects, tokens alternate between names and their values.
+    //     * Written using {@link JsonWriter#name} and read using {@link JsonReader#nextField()}
+    //     */
+    //    NAME,
 
-    /**
-     * A JSON string.
-     */
+    /** A JSON string. */
     STRING,
 
     /**
@@ -225,20 +171,17 @@ public interface JsonReader extends Closeable {
      */
     NUMBER,
 
-    /**
-     * A JSON {@code true} or {@code false}.
-     */
+    /** A JSON {@code true} or {@code false}. */
     BOOLEAN,
 
-    /**
-     * A JSON {@code null}.
-     */
+    /** A JSON {@code null}. */
     NULL,
 
-//    /**
-//     * The end of the JSON stream. This sentinel value is returned by {@link JsonReader#peek()} to
-//     * signal that the JSON-encoded value has no more tokens.
-//     */
-//    END_DOCUMENT
+    //    /**
+    //     * The end of the JSON stream. This sentinel value is returned by {@link
+    // JsonReader#peek()} to
+    //     * signal that the JSON-encoded value has no more tokens.
+    //     */
+    //    END_DOCUMENT
   }
 }

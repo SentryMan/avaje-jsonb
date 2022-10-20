@@ -2,9 +2,7 @@ package io.avaje.jsonb;
 
 import java.io.IOException;
 
-/**
- * Thrown when we hit EOF unexpectedly.
- */
+/** Thrown when we hit EOF unexpectedly. */
 public class JsonEofException extends JsonIoException {
 
   public JsonEofException(IOException cause) {

@@ -15,25 +15,27 @@
  */
 package io.avaje.jsonb.core;
 
-import io.avaje.jsonb.*;
-
+import io.avaje.jsonb.JsonAdapter;
+import io.avaje.jsonb.JsonDataException;
+import io.avaje.jsonb.JsonReader;
+import io.avaje.jsonb.JsonWriter;
+import io.avaje.jsonb.Jsonb;
 import java.lang.reflect.Type;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * Converts maps with string keys to JSON objects.
- */
+/** Converts maps with string keys to JSON objects. */
 final class MapAdapter<V> extends JsonAdapter<Map<String, V>> {
 
-  static final Factory FACTORY = (type, jsonb) -> {
-    Class<?> rawType = Util.rawType(type);
-    if (rawType != Map.class) {
-      return null;
-    }
-    Type valueType = Util.mapValueType(type, rawType);
-    return new MapAdapter<>(jsonb, valueType).nullSafe();
-  };
+  static final Factory FACTORY =
+      (type, jsonb) -> {
+        final Class<?> rawType = Util.rawType(type);
+        if (rawType != Map.class) {
+          return null;
+        }
+        final Type valueType = Util.mapValueType(type, rawType);
+        return new MapAdapter<>(jsonb, valueType).nullSafe();
+      };
 
   private final JsonAdapter<V> valueAdapter;
 
@@ -44,7 +46,7 @@ final class MapAdapter<V> extends JsonAdapter<Map<String, V>> {
   @Override
   public void toJson(JsonWriter writer, Map<String, V> map) {
     writer.beginObject();
-    for (Map.Entry<String, V> entry : map.entrySet()) {
+    for (final Map.Entry<String, V> entry : map.entrySet()) {
       if (entry.getKey() == null) {
         throw new JsonDataException("Map key is null at " + writer.path());
       }
@@ -56,14 +58,17 @@ final class MapAdapter<V> extends JsonAdapter<Map<String, V>> {
 
   @Override
   public Map<String, V> fromJson(JsonReader reader) {
-    Map<String, V> result = new LinkedHashMap<>();
+    final Map<String, V> result = new LinkedHashMap<>();
     reader.beginObject();
     while (reader.hasNextField()) {
-      String name = reader.nextField();
-      V value = valueAdapter.fromJson(reader);
-      V replaced = result.put(name, value);
+      final String name = reader.nextField();
+      final V value = valueAdapter.fromJson(reader);
+      final V replaced = result.put(name, value);
       if (replaced != null) {
-        throw new JsonDataException(String.format("Map key '%s' has multiple values at path %s : %s and %s", name, reader.location(), replaced, value));
+        throw new JsonDataException(
+            String.format(
+                "Map key '%s' has multiple values at path %s : %s and %s",
+                name, reader.location(), replaced, value));
       }
     }
     reader.endObject();

@@ -1,15 +1,14 @@
 package org.example;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import io.avaje.jsonb.*;
 import io.avaje.jsonb.JsonWriter;
-import org.junit.jupiter.api.Test;
-
 import java.io.StringWriter;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class CustomerTest {
 
@@ -21,10 +20,10 @@ class CustomerTest {
   void toJson() {
 
     Address billingAddress = new Address().street("street").suburb("suburb");
-    Customer customer = new Customer().id(42).name("rob").whenCreated(Instant.now()).billingAddress(billingAddress);
+    Customer customer =
+        new Customer().id(42).name("rob").whenCreated(Instant.now()).billingAddress(billingAddress);
     customer.contacts().add(new Contact(7L, "fo", "nar"));
     customer.contacts().add(new Contact(8L, "ba", "zar"));
-
 
     JsonType<Customer> customerType = jsonb.type(Customer.class);
     String asJson = customerType.toJson(customer);
@@ -54,8 +53,14 @@ class CustomerTest {
 
   @Test
   void jsonView_sameInstance() {
-    JsonView<Customer> v0 = jsonb.type(Customer.class).view("(id, name, billingAddress(street), contacts(id, lastName))");
-    JsonView<Customer> v1 = jsonb.type(Customer.class).view("(id, name, billingAddress(street), contacts(id, lastName))");
+    JsonView<Customer> v0 =
+        jsonb
+            .type(Customer.class)
+            .view("(id, name, billingAddress(street), contacts(id, lastName))");
+    JsonView<Customer> v1 =
+        jsonb
+            .type(Customer.class)
+            .view("(id, name, billingAddress(street), contacts(id, lastName))");
 
     assertThat(v0).isSameAs(v1);
   }
@@ -77,25 +82,34 @@ class CustomerTest {
   @Test
   void jsonView() {
 
-    JsonView<Customer> customerJsonView = jsonb.type(Customer.class).view("(id, name, billingAddress(street), contacts(id, lastName))");
+    JsonView<Customer> customerJsonView =
+        jsonb
+            .type(Customer.class)
+            .view("(id, name, billingAddress(street), contacts(id, lastName))");
 
     Address billingAddress = new Address().street("my street").suburb("my suburb");
-    Customer customer = new Customer().id(42).name("rob").whenCreated(Instant.now()).billingAddress(billingAddress);
+    Customer customer =
+        new Customer().id(42).name("rob").whenCreated(Instant.now()).billingAddress(billingAddress);
     customer.contacts().add(new Contact(7L, "fo", "nar"));
     customer.contacts().add(new Contact(8L, "ba", "zar"));
 
     String asJson = customerJsonView.toJson(customer);
-    assertThat(asJson).isEqualTo("{\"id\":42,\"name\":\"rob\",\"billingAddress\":{\"street\":\"my street\"},\"contacts\":[{\"id\":7,\"lastName\":\"nar\"},{\"id\":8,\"lastName\":\"zar\"}]}");
+    assertThat(asJson)
+        .isEqualTo(
+            "{\"id\":42,\"name\":\"rob\",\"billingAddress\":{\"street\":\"my street\"},\"contacts\":[{\"id\":7,\"lastName\":\"nar\"},{\"id\":8,\"lastName\":\"zar\"}]}");
   }
 
   @Test
   void jsonView_list() {
 
-    JsonView<List<Customer>> customerJsonView = jsonb.type(Customer.class).list().view("(id, name, contacts(*))");
+    JsonView<List<Customer>> customerJsonView =
+        jsonb.type(Customer.class).list().view("(id, name, contacts(*))");
 
     Address billingAddress = new Address().street("my street").suburb("my suburb");
-    Customer customer0 = new Customer().id(42).name("rob").whenCreated(Instant.now()).billingAddress(billingAddress);
-    Customer customer1 = new Customer().id(43).name("bob").whenCreated(Instant.now()).billingAddress(billingAddress);
+    Customer customer0 =
+        new Customer().id(42).name("rob").whenCreated(Instant.now()).billingAddress(billingAddress);
+    Customer customer1 =
+        new Customer().id(43).name("bob").whenCreated(Instant.now()).billingAddress(billingAddress);
     customer0.contacts().add(new Contact(7L, "fo", "nar"));
     customer0.contacts().add(new Contact(8L, "ba", "zar"));
 
@@ -104,6 +118,8 @@ class CustomerTest {
     customers.add(customer1);
 
     String asJson = customerJsonView.toJson(customers);
-    assertThat(asJson).isEqualTo("[{\"id\":42,\"name\":\"rob\",\"contacts\":[{\"id\":7,\"firstName\":\"fo\",\"lastName\":\"nar\"},{\"id\":8,\"firstName\":\"ba\",\"lastName\":\"zar\"}]},{\"id\":43,\"name\":\"bob\"}]");
+    assertThat(asJson)
+        .isEqualTo(
+            "[{\"id\":42,\"name\":\"rob\",\"contacts\":[{\"id\":7,\"firstName\":\"fo\",\"lastName\":\"nar\"},{\"id\":8,\"firstName\":\"ba\",\"lastName\":\"zar\"}]},{\"id\":43,\"name\":\"bob\"}]");
   }
 }

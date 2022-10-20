@@ -1,9 +1,9 @@
 package io.avaje.jsonb.generator;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import io.avaje.jsonb.Json;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class NamingConventionTest {
 
@@ -98,5 +98,4 @@ class NamingConventionTest {
     assertEquals("AURL", match.from("aURL"));
     assertEquals("MyURL", match.from("myURL"));
   }
-
 }

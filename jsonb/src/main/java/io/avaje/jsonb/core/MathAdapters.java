@@ -4,7 +4,6 @@ import io.avaje.jsonb.JsonAdapter;
 import io.avaje.jsonb.JsonReader;
 import io.avaje.jsonb.JsonWriter;
 import io.avaje.jsonb.Jsonb;
-
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -93,5 +92,4 @@ class MathAdapters implements JsonAdapter.Factory {
       return "JsonAdapter(BigInteger)";
     }
   }
-
 }

@@ -7,7 +7,6 @@ import io.avaje.jsonb.Jsonb;
 import io.avaje.jsonb.spi.PropertyNames;
 import io.avaje.jsonb.spi.ViewBuilder;
 import io.avaje.jsonb.spi.ViewBuilderAware;
-
 import java.lang.invoke.MethodHandle;
 
 public class AddressJsonAdapter extends JsonAdapter<Address> implements ViewBuilderAware {
@@ -61,25 +60,28 @@ public class AddressJsonAdapter extends JsonAdapter<Address> implements ViewBuil
     while (reader.hasNextField()) {
       String fieldName = reader.nextField();
       switch (fieldName) {
-        case "street": {
-          address.street(stringAdapter.fromJson(reader));
-          break;
-        }
-        case "suburb": {
-          address.suburb(stringAdapter.fromJson(reader));
-          break;
-        }
-        case "city": {
-          address.city(stringAdapter.fromJson(reader));
-          break;
-        }
-        default: {
-          throw new IllegalStateException("fieldName " + fieldName + " not found ");
-        }
+        case "street":
+          {
+            address.street(stringAdapter.fromJson(reader));
+            break;
+          }
+        case "suburb":
+          {
+            address.suburb(stringAdapter.fromJson(reader));
+            break;
+          }
+        case "city":
+          {
+            address.city(stringAdapter.fromJson(reader));
+            break;
+          }
+        default:
+          {
+            throw new IllegalStateException("fieldName " + fieldName + " not found ");
+          }
       }
     }
     reader.endObject();
     return address;
   }
-
 }

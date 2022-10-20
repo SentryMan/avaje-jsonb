@@ -1,5 +1,6 @@
 package io.avaje.jsonb.generator;
 
+import java.io.IOException;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -12,7 +13,6 @@ import javax.tools.Diagnostic;
 import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
-import java.io.IOException;
 
 class ProcessingContext {
 
@@ -30,9 +30,7 @@ class ProcessingContext {
     this.typeUtils = processingEnv.getTypeUtils();
   }
 
-  /**
-   * Log an error message.
-   */
+  /** Log an error message. */
   void logError(Element e, String msg, Object... args) {
     messager.printMessage(Diagnostic.Kind.ERROR, String.format(msg, args), e);
   }
@@ -49,9 +47,7 @@ class ProcessingContext {
     messager.printMessage(Diagnostic.Kind.NOTE, String.format(msg, args));
   }
 
-  /**
-   * Create a file writer for the given class name.
-   */
+  /** Create a file writer for the given class name. */
   JavaFileObject createWriter(String cls) throws IOException {
     return filer.createSourceFile(cls);
   }

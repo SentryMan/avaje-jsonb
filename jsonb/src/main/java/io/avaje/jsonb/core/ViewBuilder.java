@@ -1,10 +1,13 @@
 package io.avaje.jsonb.core;
 
-import io.avaje.jsonb.*;
+import io.avaje.jsonb.JsonAdapter;
+import io.avaje.jsonb.JsonException;
+import io.avaje.jsonb.JsonIoException;
+import io.avaje.jsonb.JsonView;
+import io.avaje.jsonb.JsonWriter;
 import io.avaje.jsonb.spi.BufferedJsonWriter;
 import io.avaje.jsonb.spi.BytesJsonWriter;
 import io.avaje.jsonb.spi.PropertyNames;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
@@ -40,7 +43,7 @@ final class ViewBuilder implements io.avaje.jsonb.spi.ViewBuilder {
   public MethodHandle method(Class<?> cls, String methodName, Class<?> returnType) {
     try {
       return lookup.findVirtual(cls, methodName, MethodType.methodType(returnType));
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw new JsonException(e);
     }
   }
@@ -48,9 +51,9 @@ final class ViewBuilder implements io.avaje.jsonb.spi.ViewBuilder {
   @Override
   public MethodHandle field(Class<?> cls, String name) {
     try {
-      Field field = cls.getDeclaredField(name);
+      final Field field = cls.getDeclaredField(name);
       return lookup.unreflectGetter(field);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw new JsonException(e);
     }
   }
@@ -61,8 +64,8 @@ final class ViewBuilder implements io.avaje.jsonb.spi.ViewBuilder {
   }
 
   private void pop() {
-    Items items = stack.pop();
-    Element element = items.build();
+    final Items items = stack.pop();
+    final Element element = items.build();
     if (stack.isEmpty()) {
       resultElement = element;
     } else {
@@ -97,9 +100,9 @@ final class ViewBuilder implements io.avaje.jsonb.spi.ViewBuilder {
   @Override
   public void addArray(String name, JsonAdapter<?> adapter, MethodHandle methodHandle) {
     try {
-      ViewBuilder nested = new ViewBuilder(viewDsl, names);
+      final ViewBuilder nested = new ViewBuilder(viewDsl, names);
       adapter.viewBuild().build(nested);
-      JsonView<Object> nestedView = nested.build();
+      final JsonView<Object> nestedView = nested.build();
       if (name == null) {
         if (current != null) {
           throw new IllegalStateException();
@@ -108,7 +111,7 @@ final class ViewBuilder implements io.avaje.jsonb.spi.ViewBuilder {
       } else {
         current.add(new NestedCollection(nestedView, names.add(name), methodHandle));
       }
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -117,9 +120,7 @@ final class ViewBuilder implements io.avaje.jsonb.spi.ViewBuilder {
     return new DView<>(jsonb, resultElement, jsonb.properties(names.properties()));
   }
 
-  /**
-   * Build internal nested view.
-   */
+  /** Build internal nested view. */
   <T> JsonView<T> build() {
     return new DView<>(resultElement);
   }
@@ -163,9 +164,8 @@ final class ViewBuilder implements io.avaje.jsonb.spi.ViewBuilder {
     Element build() {
       if (name == null) {
         return new ObjectElement(items);
-      } else {
-        return new NestedObject(items, names.add(name), methodHandle);
       }
+      return new NestedObject(items, names.add(name), methodHandle);
     }
   }
 
@@ -175,18 +175,14 @@ final class ViewBuilder implements io.avaje.jsonb.spi.ViewBuilder {
     private final PropertyNames properties;
     private final Element element;
 
-    /**
-     * Create top level view.
-     */
+    /** Create top level view. */
     DView(DJsonb jsonb, Element element, PropertyNames properties) {
       this.jsonb = jsonb;
       this.element = element;
       this.properties = properties;
     }
 
-    /**
-     * Create nested view.
-     */
+    /** Create nested view. */
     DView(Element element) {
       this.element = element;
       this.jsonb = null;
@@ -225,7 +221,7 @@ final class ViewBuilder implements io.avaje.jsonb.spi.ViewBuilder {
       }
       try {
         element.write(writer, value);
-      } catch (IOException e) {
+      } catch (final IOException e) {
         throw new JsonIoException(e);
       }
     }
@@ -263,7 +259,7 @@ final class ViewBuilder implements io.avaje.jsonb.spi.ViewBuilder {
       try {
         writer.name(namePosition);
         adapter.toJson(writer, methodHandle.invoke(object));
-      } catch (Throwable e) {
+      } catch (final Throwable e) {
         throw JsonException.of(e);
       }
     }
@@ -285,7 +281,7 @@ final class ViewBuilder implements io.avaje.jsonb.spi.ViewBuilder {
           element.write(writer, object);
         }
         writer.endObject();
-      } catch (IOException e) {
+      } catch (final IOException e) {
         throw new JsonIoException(e);
       }
     }
@@ -313,7 +309,7 @@ final class ViewBuilder implements io.avaje.jsonb.spi.ViewBuilder {
           element.write(writer, nested);
         }
         writer.endObject();
-      } catch (Throwable e) {
+      } catch (final Throwable e) {
         throw JsonException.of(e);
       }
     }
@@ -370,7 +366,7 @@ final class ViewBuilder implements io.avaje.jsonb.spi.ViewBuilder {
           }
           writer.endArray();
         }
-      } catch (Throwable e) {
+      } catch (final Throwable e) {
         throw JsonException.of(e);
       }
     }

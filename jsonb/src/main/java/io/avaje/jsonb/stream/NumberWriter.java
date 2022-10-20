@@ -5,21 +5,23 @@ final class NumberWriter {
   private static final byte MINUS = '-';
   private static final byte[] MIN_INT = "-2147483648".getBytes();
   private static final byte[] MIN_LONG = "-9223372036854775808".getBytes();
-  private final static int[] DIGITS = new int[1000];
+  private static final int[] DIGITS = new int[1000];
 
   static {
     for (int i = 0; i < DIGITS.length; i++) {
-      DIGITS[i] = (i < 10 ? (2 << 24) : i < 100 ? (1 << 24) : 0)
-        + (((i / 100) + '0') << 16)
-        + ((((i / 10) % 10) + '0') << 8)
-        + i % 10 + '0';
+      DIGITS[i] =
+          (i < 10 ? 2 << 24 : i < 100 ? 1 << 24 : 0)
+              + (i / 100 + '0' << 16)
+              + (i / 10 % 10 + '0' << 8)
+              + i % 10
+              + '0';
     }
   }
 
   static void writeInt(final int value, final JGenerator sw) {
     final byte[] buf = sw.ensureCapacity(11);
     final int position = sw.position();
-    int current = serializeInt(buf, position, value);
+    final int current = serializeInt(buf, position, value);
     sw.advance(current - position);
   }
 
@@ -31,7 +33,8 @@ final class NumberWriter {
         return pos + MIN_INT.length;
       }
       i = -value;
-      buf[pos++] = MINUS;
+      buf[pos] = MINUS;
+      pos++;
     } else {
       i = value;
     }
@@ -45,7 +48,7 @@ final class NumberWriter {
     if (q2 == 0) {
       final int v1 = DIGITS[r1];
       final int v2 = DIGITS[q1];
-      int off = writeFirstBuf(buf, v2, pos);
+      final int off = writeFirstBuf(buf, v2, pos);
       writeBuf(buf, v1, pos + off);
       return pos + 3 + off;
     }
@@ -57,7 +60,8 @@ final class NumberWriter {
       pos += writeFirstBuf(buf, DIGITS[q2], pos);
     } else {
       final int r3 = q2 - q3 * 1000;
-      buf[pos++] = (byte) (q3 + '0');
+      buf[pos] = (byte) (q3 + '0');
+      pos++;
       writeBuf(buf, DIGITS[r3], pos);
       pos += 3;
     }
@@ -69,10 +73,12 @@ final class NumberWriter {
   private static int writeFirstBuf(final byte[] buf, final int v, int pos) {
     final int start = v >> 24;
     if (start == 0) {
-      buf[pos++] = (byte) (v >> 16);
+      buf[pos] = (byte) (v >> 16);
+      pos++;
       buf[pos++] = (byte) (v >> 8);
     } else if (start == 1) {
-      buf[pos++] = (byte) (v >> 8);
+      buf[pos] = (byte) (v >> 8);
+      pos++;
     }
     buf[pos] = (byte) v;
     return 3 - start;
@@ -84,11 +90,10 @@ final class NumberWriter {
     buf[pos + 2] = (byte) v;
   }
 
-
   static void writeLong(final long value, final JGenerator sw) {
     final byte[] buf = sw.ensureCapacity(21);
     final int position = sw.position();
-    int current = serializeLong(buf, position, value);
+    final int current = serializeLong(buf, position, value);
     sw.advance(current - position);
   }
 
@@ -100,7 +105,8 @@ final class NumberWriter {
         return pos + MIN_LONG.length;
       }
       i = -value;
-      buf[pos++] = MINUS;
+      buf[pos] = MINUS;
+      pos++;
     } else {
       i = value;
     }
@@ -114,7 +120,7 @@ final class NumberWriter {
     if (q2 == 0) {
       final int v1 = DIGITS[r1];
       final int v2 = DIGITS[(int) q1];
-      int off = writeFirstBuf(buf, v2, pos);
+      final int off = writeFirstBuf(buf, v2, pos);
       writeBuf(buf, v1, pos + off);
       return pos + 3 + off;
     }
@@ -168,7 +174,8 @@ final class NumberWriter {
       pos += writeFirstBuf(buf, DIGITS[q5], pos);
     } else {
       final int r6 = q5 - q6 * 1000;
-      buf[pos++] = (byte) (q6 + '0');
+      buf[pos] = (byte) (q6 + '0');
+      pos++;
       writeBuf(buf, DIGITS[r6], pos);
       pos += 3;
     }

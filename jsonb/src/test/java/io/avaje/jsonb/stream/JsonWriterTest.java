@@ -1,46 +1,45 @@
 package io.avaje.jsonb.stream;
 
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayOutputStream;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class JsonWriterTest {
 
   @Test
   void recycle() {
-    ByteArrayOutputStream os = new ByteArrayOutputStream();
-    JsonGenerator generator = Recycle.generator(os);
+    final ByteArrayOutputStream os = new ByteArrayOutputStream();
+    final JsonGenerator generator = Recycle.generator(os);
 
     writeHello(generator, "hello");
 
-    String asJson = os.toString();
+    final String asJson = os.toString();
     assertThat(asJson).isEqualTo("{\"one\":\"hello\"}");
 
-    ByteArrayOutputStream os1 = new ByteArrayOutputStream();
-    JsonGenerator generator1 = Recycle.generator(os1);
+    final ByteArrayOutputStream os1 = new ByteArrayOutputStream();
+    final JsonGenerator generator1 = Recycle.generator(os1);
 
     writeHello(generator1, "hi");
 
-    String asJson1 = os1.toString();
+    final String asJson1 = os1.toString();
     assertThat(asJson1).isEqualTo("{\"one\":\"hi\"}");
   }
 
   @Test
   void recycle_toString() {
 
-    JsonGenerator generator = Recycle.generator();
+    final JsonGenerator generator = Recycle.generator();
     writeHello(generator, "hello");
     assertThat(generator.toString()).isEqualTo("{\"one\":\"hello\"}");
 
-    JsonGenerator generator1 = Recycle.generator();
+    final JsonGenerator generator1 = Recycle.generator();
     writeHello(generator1, "hi");
     assertThat(generator1.toString()).isEqualTo("{\"one\":\"hi\"}");
   }
 
   private void writeHello(JsonGenerator generator, String message) {
-    JsonWriteAdapter fw = new JsonWriteAdapter(generator, true, true);
+    final JsonWriteAdapter fw = new JsonWriteAdapter(generator, true, true);
 
     fw.beginObject();
     fw.name("one");
@@ -52,11 +51,11 @@ class JsonWriterTest {
   @Test
   void basic() {
 
-    ByteArrayOutputStream os = new ByteArrayOutputStream();
-    JGenerator dJsonWriter = new JGenerator();
+    final ByteArrayOutputStream os = new ByteArrayOutputStream();
+    final JGenerator dJsonWriter = new JGenerator();
     dJsonWriter.prepare(os);
 
-    JsonWriteAdapter fw = new JsonWriteAdapter(dJsonWriter, true, true);
+    final JsonWriteAdapter fw = new JsonWriteAdapter(dJsonWriter, true, true);
 
     fw.beginArray();
     fw.beginObject();
@@ -79,21 +78,22 @@ class JsonWriterTest {
     fw.endArray();
     fw.close();
 
-    String asJson = os.toString();
-    assertThat(asJson).isEqualTo("[{\"one\":\"hello\",\"size\":43},{\"one\":\"another\",\"active\":true,\"flags\":[42,43]}]");
+    final String asJson = os.toString();
+    assertThat(asJson)
+        .isEqualTo(
+            "[{\"one\":\"hello\",\"size\":43},{\"one\":\"another\",\"active\":true,\"flags\":[42,43]}]");
   }
-
 
   @Test
   void using_names() {
 
-    ByteArrayOutputStream os = new ByteArrayOutputStream();
-    JGenerator dJsonWriter = new JGenerator();
+    final ByteArrayOutputStream os = new ByteArrayOutputStream();
+    final JGenerator dJsonWriter = new JGenerator();
     dJsonWriter.prepare(os);
 
-    JsonWriteAdapter fw = new JsonWriteAdapter(dJsonWriter, true, true);
+    final JsonWriteAdapter fw = new JsonWriteAdapter(dJsonWriter, true, true);
 
-    JsonNames names = JsonNames.of("one", "size", "active","flags");
+    final JsonNames names = JsonNames.of("one", "size", "active", "flags");
 
     fw.beginArray();
 
@@ -120,8 +120,9 @@ class JsonWriterTest {
     fw.endArray();
     fw.close();
 
-    String asJson = os.toString();
-    assertThat(asJson).isEqualTo("[{\"one\":\"hello\",\"size\":43},{\"one\":\"another\",\"active\":true,\"flags\":[42,43]}]");
-
+    final String asJson = os.toString();
+    assertThat(asJson)
+        .isEqualTo(
+            "[{\"one\":\"hello\",\"size\":43},{\"one\":\"another\",\"active\":true,\"flags\":[42,43]}]");
   }
 }

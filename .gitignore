@@ -4,5 +4,5 @@ build/
 *.iml
 .gradle
 *.prefs
-jsonb-generator/.classpath
-jsonb-generator/.project
+*.project
+*.classpath

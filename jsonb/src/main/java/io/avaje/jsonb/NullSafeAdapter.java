@@ -38,11 +38,11 @@ final class NullSafeAdapter<T> extends JsonAdapter<T> {
   public T fromJson(JsonReader reader) {
     if (reader.isNullValue()) {
       return null;
-    } else {
-      return delegate.fromJson(reader);
     }
+    return delegate.fromJson(reader);
   }
 
+  @Override
   public boolean isViewBuilderAware() {
     return delegate.isViewBuilderAware();
   }

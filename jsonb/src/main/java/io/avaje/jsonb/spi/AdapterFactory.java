@@ -10,7 +10,7 @@ public interface AdapterFactory {
    *
    * @param serializeNulls The default setting for serializing nulls
    * @param serializeEmpty The default setting for serializing empty arrays
-   * @param failOnUnknown  The default setting for fail when deserializing unknown properties
+   * @param failOnUnknown The default setting for fail when deserializing unknown properties
    * @return The adapter to use
    */
   JsonStreamAdapter create(boolean serializeNulls, boolean serializeEmpty, boolean failOnUnknown);

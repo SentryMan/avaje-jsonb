@@ -1,13 +1,19 @@
 package io.avaje.jsonb.generator;
 
 import io.avaje.jsonb.Json;
-
-import javax.lang.model.element.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 
 /**
- * Read points for field injection and method injection
- * on baseType plus inherited injection points.
+ * Read points for field injection and method injection on baseType plus inherited injection points.
  */
 class TypeReader {
 
@@ -42,7 +48,7 @@ class TypeReader {
 
   void read(TypeElement type) {
     final List<FieldReader> localFields = new ArrayList<>();
-    for (Element element : type.getEnclosedElements()) {
+    for (final Element element : type.getEnclosedElements()) {
       switch (element.getKind()) {
         case CONSTRUCTOR:
           readConstructor(element, type);
@@ -57,12 +63,12 @@ class TypeReader {
     }
     if (currentSubType == null && type != baseType) {
       allFields.addAll(0, localFields);
-      for (FieldReader localField : localFields) {
+      for (final FieldReader localField : localFields) {
         allFieldMap.put(localField.fieldName(), localField);
       }
     } else {
-      for (FieldReader localField : localFields) {
-        FieldReader commonField = allFieldMap.get(localField.fieldName());
+      for (final FieldReader localField : localFields) {
+        final FieldReader commonField = allFieldMap.get(localField.fieldName());
         if (commonField == null) {
           allFields.add(localField);
           allFieldMap.put(localField.fieldName(), localField);
@@ -81,21 +87,22 @@ class TypeReader {
 
   private boolean includeField(Element element) {
     return !element.getModifiers().contains(Modifier.TRANSIENT)
-      && !element.getModifiers().contains(Modifier.STATIC);
+        && !element.getModifiers().contains(Modifier.STATIC);
   }
 
   private void readConstructor(Element element, TypeElement type) {
     if (currentSubType != null) {
       if (currentSubType.element() != type) {
-        // context.logError("subType " + currentSubType.element() + " ignore constructor " + element);
+        // context.logError("subType " + currentSubType.element() + " ignore constructor " +
+        // element);
         return;
       }
     } else if (type != baseType) {
       // context.logError("baseType " + baseType + " ignore constructor: " + element);
       return;
     }
-    ExecutableElement ex = (ExecutableElement) element;
-    MethodReader methodReader = new MethodReader(context, ex, baseType).read();
+    final ExecutableElement ex = (ExecutableElement) element;
+    final MethodReader methodReader = new MethodReader(context, ex, baseType).read();
     if (methodReader.isPublic()) {
       if (currentSubType != null) {
         currentSubType.addConstructor(methodReader);
@@ -109,11 +116,11 @@ class TypeReader {
   }
 
   private void readMethod(Element element, TypeElement type) {
-    ExecutableElement methodElement = (ExecutableElement) element;
+    final ExecutableElement methodElement = (ExecutableElement) element;
     if (methodElement.getModifiers().contains(Modifier.PUBLIC)) {
-      List<? extends VariableElement> parameters = methodElement.getParameters();
+      final List<? extends VariableElement> parameters = methodElement.getParameters();
       final String methodKey = methodElement.getSimpleName().toString();
-      MethodReader methodReader = new MethodReader(context, methodElement, type).read();
+      final MethodReader methodReader = new MethodReader(context, methodElement, type).read();
       if (parameters.size() == 1) {
         if (!maybeSetterMethods.containsKey(methodKey)) {
           maybeSetterMethods.put(methodKey, methodReader);
@@ -129,7 +136,7 @@ class TypeReader {
   }
 
   private void matchFieldsToSetterOrConstructor() {
-    for (FieldReader field : allFields) {
+    for (final FieldReader field : allFields) {
       if (constructorParamMap.get(field.fieldName()) != null) {
         field.constructorParam();
       } else {
@@ -139,22 +146,25 @@ class TypeReader {
   }
 
   private void matchFieldToSetter(FieldReader field) {
-    if (!matchFieldToSetter2(field, false)) {
-      if (!matchFieldToSetter2(field, true)) {
-        if (!matchFieldToSetterByParam(field)) {
-          if (!field.isPublicField()) {
-            context.logError("Non public field " + baseType + " " + field.fieldName() + " with no matching setter or constructor?");
-          }
+    if (!matchFieldToSetter2(field, false) && !matchFieldToSetter2(field, true)) {
+      if (!matchFieldToSetterByParam(field)) {
+        if (!field.isPublicField()) {
+          context.logError(
+              "Non public field "
+                  + baseType
+                  + " "
+                  + field.fieldName()
+                  + " with no matching setter or constructor?");
         }
       }
     }
   }
 
   private boolean matchFieldToSetterByParam(FieldReader field) {
-    String fieldName = field.fieldName();
-    for (MethodReader methodReader : maybeSetterMethods.values()) {
-      List<MethodReader.MethodParam> params = methodReader.getParams();
-      MethodReader.MethodParam methodParam = params.get(0);
+    final String fieldName = field.fieldName();
+    for (final MethodReader methodReader : maybeSetterMethods.values()) {
+      final List<MethodReader.MethodParam> params = methodReader.getParams();
+      final MethodReader.MethodParam methodParam = params.get(0);
       if (methodParam.name().equals(fieldName)) {
         field.setterMethod(methodReader);
         return true;
@@ -164,17 +174,16 @@ class TypeReader {
   }
 
   private boolean matchFieldToSetter2(FieldReader field, boolean loose) {
-    String name = field.fieldName();
+    final String name = field.fieldName();
     MethodReader setter = setterLookup(name, loose);
     if (setter != null) {
       field.setterMethod(setter);
       return true;
-    } else {
-      setter = setterLookup(setterName(name), loose);
-      if (setter != null) {
-        field.setterMethod(setter);
-        return true;
-      }
+    }
+    setter = setterLookup(setterName(name), loose);
+    if (setter != null) {
+      field.setterMethod(setter);
+      return true;
     }
     return false;
   }
@@ -182,34 +191,36 @@ class TypeReader {
   private MethodReader setterLookup(String name, boolean loose) {
     if (loose) {
       return allSetterMethods.get(name.toLowerCase());
-    } else {
-      return maybeSetterMethods.get(name);
     }
+    return maybeSetterMethods.get(name);
   }
 
   private void matchFieldsToGetter() {
-    for (FieldReader field : allFields) {
+    for (final FieldReader field : allFields) {
       matchFieldToGetter(field);
     }
   }
 
   private void matchFieldToGetter(FieldReader field) {
-    if (!matchFieldToGetter2(field, false)) {
-      if (!matchFieldToGetter2(field, true)) {
-        if (!field.isPublicField()) {
-          nonAccessibleField = true;
-          if (hasJsonAnnotation) {
-            context.logError("Non accessible field " + baseType + " " + field.fieldName() + " with no matching getter?");
-          } else {
-            context.logDebug("Non accessible field " + baseType + " " + field.fieldName());
-          }
+    if (!matchFieldToGetter2(field, false) && !matchFieldToGetter2(field, true)) {
+      if (!field.isPublicField()) {
+        nonAccessibleField = true;
+        if (hasJsonAnnotation) {
+          context.logError(
+              "Non accessible field "
+                  + baseType
+                  + " "
+                  + field.fieldName()
+                  + " with no matching getter?");
+        } else {
+          context.logDebug("Non accessible field " + baseType + " " + field.fieldName());
         }
       }
     }
   }
 
   private boolean matchFieldToGetter2(FieldReader field, boolean loose) {
-    String name = field.fieldName();
+    final String name = field.fieldName();
     MethodReader getter = getterLookup(name, loose);
     if (getter != null) {
       field.getterMethod(getter);
@@ -231,9 +242,8 @@ class TypeReader {
   private MethodReader getterLookup(String name, boolean loose) {
     if (!loose) {
       return maybeGetterMethods.get(name);
-    } else {
-      return allGetterMethods.get(name.toLowerCase());
     }
+    return allGetterMethods.get(name.toLowerCase());
   }
 
   private String setterName(String name) {
@@ -268,8 +278,8 @@ class TypeReader {
       return publicConstructors.get(0);
     }
     // check if there is only one public constructor
-    List<MethodReader> allPublic = new ArrayList<>();
-    for (MethodReader ctor : publicConstructors) {
+    final List<MethodReader> allPublic = new ArrayList<>();
+    for (final MethodReader ctor : publicConstructors) {
       if (ctor.isPublic()) {
         allPublic.add(ctor);
       }
@@ -281,9 +291,9 @@ class TypeReader {
     // find the largest constructor
     int argCount = 0;
     MethodReader largestConstructor = null;
-    for (MethodReader ctor : publicConstructors) {
+    for (final MethodReader ctor : publicConstructors) {
       if (ctor.isPublic()) {
-        int paramCount = ctor.getParams().size();
+        final int paramCount = ctor.getParams().size();
         if (paramCount > argCount) {
           largestConstructor = ctor;
           argCount = paramCount;
@@ -295,11 +305,11 @@ class TypeReader {
   }
 
   void process() {
-    String base = baseType.getQualifiedName().toString();
+    final String base = baseType.getQualifiedName().toString();
     if (!GenericType.isGeneric(base)) {
       read(baseType);
     }
-    TypeElement superElement = superOf(baseType);
+    final TypeElement superElement = superOf(baseType);
     if (superElement != null) {
       addSuperType(superElement, null);
     }
@@ -309,9 +319,9 @@ class TypeReader {
 
   private void readSubTypes() {
     if (hasSubTypes()) {
-      for (TypeSubTypeMeta subType : subTypes.subTypes()) {
+      for (final TypeSubTypeMeta subType : subTypes.subTypes()) {
         currentSubType = subType;
-        TypeElement element = context.element(subType.type());
+        final TypeElement element = context.element(subType.type());
         currentSubType.setElement(element);
         addSuperType(element, baseType);
       }
@@ -326,8 +336,8 @@ class TypeReader {
     setFieldPositions();
     constructor = determineConstructor();
     if (constructor != null) {
-      List<MethodReader.MethodParam> params = constructor.getParams();
-      for (MethodReader.MethodParam param : params) {
+      final List<MethodReader.MethodParam> params = constructor.getParams();
+      for (final MethodReader.MethodParam param : params) {
         constructorParamMap.put(param.name(), param);
       }
     }
@@ -335,23 +345,19 @@ class TypeReader {
     matchFieldsToGetter();
   }
 
-  /**
-   * Set the index position of the fields (for PropertyNames).
-   */
+  /** Set the index position of the fields (for PropertyNames). */
   private void setFieldPositions() {
-    int offset = subTypes.hasSubTypes() ? 1 : 0;
+    final int offset = subTypes.hasSubTypes() ? 1 : 0;
     for (int pos = 0, size = allFields.size(); pos < size; pos++) {
       allFields.get(pos).position(pos + offset);
     }
   }
 
   private void addSuperType(TypeElement element, TypeElement matchType) {
-    String type = element.getQualifiedName().toString();
-    if (!type.equals(JAVA_LANG_OBJECT)) {
-      if (!GenericType.isGeneric(type)) {
-        read(element);
-        addSuperType(superOf(element), matchType);
-      }
+    final String type = element.getQualifiedName().toString();
+    if (!JAVA_LANG_OBJECT.equals(type) && !GenericType.isGeneric(type)) {
+      read(element);
+      addSuperType(superOf(element), matchType);
     }
   }
 

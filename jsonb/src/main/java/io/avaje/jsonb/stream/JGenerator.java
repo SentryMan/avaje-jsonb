@@ -1,7 +1,6 @@
 package io.avaje.jsonb.stream;
 
 import io.avaje.jsonb.JsonIoException;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigDecimal;
@@ -12,22 +11,22 @@ import java.util.Arrays;
 
 /**
  * DslJson writes JSON into JsonWriter which has two primary modes of operation:
- * <p>
- * * targeting specific output stream
- * * buffering the entire response in memory
- * <p>
- * In both cases JsonWriter writes into an byte[] buffer.
- * If stream is used as target, it will copy buffer into the stream whenever there is no more room in buffer for new data.
- * If stream is not used as target, it will grow the buffer to hold the encoded result.
- * To use stream as target reset(OutputStream) must be called before processing.
- * This class provides low level methods for JSON serialization.
- * <p>
- * After the processing is done,
- * in case then stream was used as target, flush() must be called to copy the remaining of the buffer into stream.
- * When entire response was buffered in memory, buffer can be copied to stream or resulting byte[] can be used directly.
- * <p>
- * For maximum performance JsonWriter instances should be reused (to avoid allocation of new byte[] buffer instances).
- * They should not be shared across threads (concurrently) so for Thread reuse it's best to use patterns such as ThreadLocal.
+ *
+ * <p>* targeting specific output stream * buffering the entire response in memory
+ *
+ * <p>In both cases JsonWriter writes into an byte[] buffer. If stream is used as target, it will
+ * copy buffer into the stream whenever there is no more room in buffer for new data. If stream is
+ * not used as target, it will grow the buffer to hold the encoded result. To use stream as target
+ * reset(OutputStream) must be called before processing. This class provides low level methods for
+ * JSON serialization.
+ *
+ * <p>After the processing is done, in case then stream was used as target, flush() must be called
+ * to copy the remaining of the buffer into stream. When entire response was buffered in memory,
+ * buffer can be copied to stream or resulting byte[] can be used directly.
+ *
+ * <p>For maximum performance JsonWriter instances should be reused (to avoid allocation of new
+ * byte[] buffer instances). They should not be shared across threads (concurrently) so for Thread
+ * reuse it's best to use patterns such as ThreadLocal.
  */
 final class JGenerator implements JsonGenerator {
 
@@ -105,7 +104,7 @@ final class JGenerator implements JsonGenerator {
     if (target != null) {
       try {
         target.write(buffer, 0, size);
-      } catch (IOException ex) {
+      } catch (final IOException ex) {
         throw new JsonIoException("Unable to write to target stream.", ex);
       }
       position = 0;
@@ -134,12 +133,12 @@ final class JGenerator implements JsonGenerator {
     int cur = position + 1;
     for (int i = 0; i < len; i++) {
       final char c = value.charAt(i);
-      if (c > 31 && c != '"' && c != '\\' && c < 126) {
-        _result[cur++] = (byte) c;
-      } else {
+      if ((c <= 31) || (c == '"') || (c == '\\') || (c >= 126)) {
         writeQuotedString(value, i, cur, len);
         return;
       }
+      _result[cur] = (byte) c;
+      cur++;
     }
     _result[cur] = QUOTE;
     position = cur + 1;
@@ -150,167 +149,183 @@ final class JGenerator implements JsonGenerator {
     for (; i < len; i++) {
       final char c = str.charAt(i);
       if (c == '"') {
-        _result[cur++] = ESCAPE;
+        _result[cur] = ESCAPE;
+        cur++;
         _result[cur++] = QUOTE;
       } else if (c == '\\') {
-        _result[cur++] = ESCAPE;
+        _result[cur] = ESCAPE;
+        cur++;
         _result[cur++] = ESCAPE;
       } else if (c < 32) {
-        if (c == 8) {
-          _result[cur++] = ESCAPE;
-          _result[cur++] = 'b';
-        } else if (c == 9) {
-          _result[cur++] = ESCAPE;
-          _result[cur++] = 't';
-        } else if (c == 10) {
-          _result[cur++] = ESCAPE;
-          _result[cur++] = 'n';
-        } else if (c == 12) {
-          _result[cur++] = ESCAPE;
-          _result[cur++] = 'f';
-        } else if (c == 13) {
-          _result[cur++] = ESCAPE;
-          _result[cur++] = 'r';
-        } else {
-          _result[cur] = ESCAPE;
-          _result[cur + 1] = 'u';
-          _result[cur + 2] = '0';
-          _result[cur + 3] = '0';
-          switch (c) {
-            case 0:
-              _result[cur + 4] = '0';
-              _result[cur + 5] = '0';
-              break;
-            case 1:
-              _result[cur + 4] = '0';
-              _result[cur + 5] = '1';
-              break;
-            case 2:
-              _result[cur + 4] = '0';
-              _result[cur + 5] = '2';
-              break;
-            case 3:
-              _result[cur + 4] = '0';
-              _result[cur + 5] = '3';
-              break;
-            case 4:
-              _result[cur + 4] = '0';
-              _result[cur + 5] = '4';
-              break;
-            case 5:
-              _result[cur + 4] = '0';
-              _result[cur + 5] = '5';
-              break;
-            case 6:
-              _result[cur + 4] = '0';
-              _result[cur + 5] = '6';
-              break;
-            case 7:
-              _result[cur + 4] = '0';
-              _result[cur + 5] = '7';
-              break;
-            case 11:
-              _result[cur + 4] = '0';
-              _result[cur + 5] = 'B';
-              break;
-            case 14:
-              _result[cur + 4] = '0';
-              _result[cur + 5] = 'E';
-              break;
-            case 15:
-              _result[cur + 4] = '0';
-              _result[cur + 5] = 'F';
-              break;
-            case 16:
-              _result[cur + 4] = '1';
-              _result[cur + 5] = '0';
-              break;
-            case 17:
-              _result[cur + 4] = '1';
-              _result[cur + 5] = '1';
-              break;
-            case 18:
-              _result[cur + 4] = '1';
-              _result[cur + 5] = '2';
-              break;
-            case 19:
-              _result[cur + 4] = '1';
-              _result[cur + 5] = '3';
-              break;
-            case 20:
-              _result[cur + 4] = '1';
-              _result[cur + 5] = '4';
-              break;
-            case 21:
-              _result[cur + 4] = '1';
-              _result[cur + 5] = '5';
-              break;
-            case 22:
-              _result[cur + 4] = '1';
-              _result[cur + 5] = '6';
-              break;
-            case 23:
-              _result[cur + 4] = '1';
-              _result[cur + 5] = '7';
-              break;
-            case 24:
-              _result[cur + 4] = '1';
-              _result[cur + 5] = '8';
-              break;
-            case 25:
-              _result[cur + 4] = '1';
-              _result[cur + 5] = '9';
-              break;
-            case 26:
-              _result[cur + 4] = '1';
-              _result[cur + 5] = 'A';
-              break;
-            case 27:
-              _result[cur + 4] = '1';
-              _result[cur + 5] = 'B';
-              break;
-            case 28:
-              _result[cur + 4] = '1';
-              _result[cur + 5] = 'C';
-              break;
-            case 29:
-              _result[cur + 4] = '1';
-              _result[cur + 5] = 'D';
-              break;
-            case 30:
-              _result[cur + 4] = '1';
-              _result[cur + 5] = 'E';
-              break;
-            default:
-              _result[cur + 4] = '1';
-              _result[cur + 5] = 'F';
-              break;
-          }
-          cur += 6;
+        switch (c) {
+          case 8:
+            _result[cur] = ESCAPE;
+            cur++;
+            _result[cur++] = 'b';
+            break;
+          case 9:
+            _result[cur++] = ESCAPE;
+            _result[cur++] = 't';
+            break;
+          case 10:
+            _result[cur++] = ESCAPE;
+            _result[cur++] = 'n';
+            break;
+          case 12:
+            _result[cur++] = ESCAPE;
+            _result[cur++] = 'f';
+            break;
+          case 13:
+            _result[cur++] = ESCAPE;
+            _result[cur++] = 'r';
+            break;
+          default:
+            _result[cur] = ESCAPE;
+            _result[cur + 1] = 'u';
+            _result[cur + 2] = '0';
+            _result[cur + 3] = '0';
+            switch (c) {
+              case 0:
+                _result[cur + 4] = '0';
+                _result[cur + 5] = '0';
+                break;
+              case 1:
+                _result[cur + 4] = '0';
+                _result[cur + 5] = '1';
+                break;
+              case 2:
+                _result[cur + 4] = '0';
+                _result[cur + 5] = '2';
+                break;
+              case 3:
+                _result[cur + 4] = '0';
+                _result[cur + 5] = '3';
+                break;
+              case 4:
+                _result[cur + 4] = '0';
+                _result[cur + 5] = '4';
+                break;
+              case 5:
+                _result[cur + 4] = '0';
+                _result[cur + 5] = '5';
+                break;
+              case 6:
+                _result[cur + 4] = '0';
+                _result[cur + 5] = '6';
+                break;
+              case 7:
+                _result[cur + 4] = '0';
+                _result[cur + 5] = '7';
+                break;
+              case 11:
+                _result[cur + 4] = '0';
+                _result[cur + 5] = 'B';
+                break;
+              case 14:
+                _result[cur + 4] = '0';
+                _result[cur + 5] = 'E';
+                break;
+              case 15:
+                _result[cur + 4] = '0';
+                _result[cur + 5] = 'F';
+                break;
+              case 16:
+                _result[cur + 4] = '1';
+                _result[cur + 5] = '0';
+                break;
+              case 17:
+                _result[cur + 4] = '1';
+                _result[cur + 5] = '1';
+                break;
+              case 18:
+                _result[cur + 4] = '1';
+                _result[cur + 5] = '2';
+                break;
+              case 19:
+                _result[cur + 4] = '1';
+                _result[cur + 5] = '3';
+                break;
+              case 20:
+                _result[cur + 4] = '1';
+                _result[cur + 5] = '4';
+                break;
+              case 21:
+                _result[cur + 4] = '1';
+                _result[cur + 5] = '5';
+                break;
+              case 22:
+                _result[cur + 4] = '1';
+                _result[cur + 5] = '6';
+                break;
+              case 23:
+                _result[cur + 4] = '1';
+                _result[cur + 5] = '7';
+                break;
+              case 24:
+                _result[cur + 4] = '1';
+                _result[cur + 5] = '8';
+                break;
+              case 25:
+                _result[cur + 4] = '1';
+                _result[cur + 5] = '9';
+                break;
+              case 26:
+                _result[cur + 4] = '1';
+                _result[cur + 5] = 'A';
+                break;
+              case 27:
+                _result[cur + 4] = '1';
+                _result[cur + 5] = 'B';
+                break;
+              case 28:
+                _result[cur + 4] = '1';
+                _result[cur + 5] = 'C';
+                break;
+              case 29:
+                _result[cur + 4] = '1';
+                _result[cur + 5] = 'D';
+                break;
+              case 30:
+                _result[cur + 4] = '1';
+                _result[cur + 5] = 'E';
+                break;
+              default:
+                _result[cur + 4] = '1';
+                _result[cur + 5] = 'F';
+                break;
+            }
+            cur += 6;
+            break;
         }
       } else if (c < 0x007F) {
-        _result[cur++] = (byte) c;
+        _result[cur] = (byte) c;
+        cur++;
       } else {
         final int cp = Character.codePointAt(str, i);
         if (Character.isSupplementaryCodePoint(cp)) {
           i++;
         }
         if (cp == 0x007F) {
-          _result[cur++] = (byte) cp;
-        } else if (cp <= 0x7FF) {
-          _result[cur++] = (byte) (0xC0 | ((cp >> 6) & 0x1F));
-          _result[cur++] = (byte) (0x80 | (cp & 0x3F));
-        } else if ((cp < 0xD800) || (cp > 0xDFFF && cp <= 0xFFFF)) {
-          _result[cur++] = (byte) (0xE0 | ((cp >> 12) & 0x0F));
-          _result[cur++] = (byte) (0x80 | ((cp >> 6) & 0x3F));
-          _result[cur++] = (byte) (0x80 | (cp & 0x3F));
-        } else if (cp >= 0x10000 && cp <= 0x10FFFF) {
-          _result[cur++] = (byte) (0xF0 | ((cp >> 18) & 0x07));
-          _result[cur++] = (byte) (0x80 | ((cp >> 12) & 0x3F));
-          _result[cur++] = (byte) (0x80 | ((cp >> 6) & 0x3F));
-          _result[cur++] = (byte) (0x80 | (cp & 0x3F));
+          _result[cur] = (byte) cp;
+          cur++;
         } else {
-          throw new JsonIoException("Unknown unicode codepoint in string! " + Integer.toHexString(cp));
+          if (cp <= 0x7FF) {
+            _result[cur] = (byte) (0xC0 | cp >> 6 & 0x1F);
+            cur++;
+          } else if (cp < 0xD800 || cp > 0xDFFF && cp <= 0xFFFF) {
+            _result[cur] = (byte) (0xE0 | cp >> 12 & 0x0F);
+            cur++;
+            _result[cur++] = (byte) (0x80 | cp >> 6 & 0x3F);
+          } else if (cp >= 0x10000 && cp <= 0x10FFFF) {
+            _result[cur] = (byte) (0xF0 | cp >> 18 & 0x07);
+            cur++;
+            _result[cur++] = (byte) (0x80 | cp >> 12 & 0x3F);
+            _result[cur++] = (byte) (0x80 | cp >> 6 & 0x3F);
+          } else {
+            throw new JsonIoException(
+                "Unknown unicode codepoint in string! " + Integer.toHexString(cp));
+          }
+          _result[cur++] = (byte) (0x80 | cp & 0x3F);
         }
       }
     }
@@ -355,16 +370,14 @@ final class JGenerator implements JsonGenerator {
       writeAscii("\"NaN\"");
     } else if (value == 0.0) {
       writeAscii("0.0");
-    } else {
-      if (Grisu3.tryConvert(value, doubleBuilder)) {
-        if (position + 24 >= buffer.length) {
-          enlargeOrFlush(position, 24);
-        }
-        final int len = doubleBuilder.copyTo(buffer, position);
-        position += len;
-      } else {
-        writeAscii(Double.toString(value));
+    } else if (Grisu3.tryConvert(value, doubleBuilder)) {
+      if (position + 24 >= buffer.length) {
+        enlargeOrFlush(position, 24);
       }
+      final int len = doubleBuilder.copyTo(buffer, position);
+      position += len;
+    } else {
+      writeAscii(Double.toString(value));
     }
   }
 
@@ -386,7 +399,7 @@ final class JGenerator implements JsonGenerator {
     if (target != null && position != 0) {
       try {
         target.write(buffer, 0, position);
-      } catch (IOException ex) {
+      } catch (final IOException ex) {
         throw new JsonIoException("Unable to write to target stream.", ex);
       }
       position = 0;
@@ -399,7 +412,7 @@ final class JGenerator implements JsonGenerator {
     if (target != null) {
       try {
         target.flush();
-      } catch (IOException e) {
+      } catch (final IOException e) {
         throw new JsonIoException(e);
       }
     }

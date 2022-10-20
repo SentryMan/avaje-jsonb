@@ -1,25 +1,24 @@
 package org.example;
 
-import io.avaje.jsonb.JsonType;
-import io.avaje.jsonb.Jsonb;
-import org.junit.jupiter.api.Test;
-
-import java.nio.charset.StandardCharsets;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
-class ContactTest {
+import io.avaje.jsonb.JsonType;
+import io.avaje.jsonb.Jsonb;
+import java.nio.charset.StandardCharsets;
+import org.junit.jupiter.api.Test;
 
+class ContactTest {
 
   final String jsonStart = "{\"id\":44,\"firstName\":\"rob\",\"lastName\":\"foo\"";
 
   @Test
   void toJson_fromJson() {
 
-    Jsonb jsonb = Jsonb.builder()
-      // a silly example exercising add of Jsonb.Component - don't do this yourself
-      .add(builder -> builder.add(Contact.class, ContactJsonAdapter::new))
-      .build();
+    Jsonb jsonb =
+        Jsonb.builder()
+            // a silly example exercising add of Jsonb.Component - don't do this yourself
+            .add(builder -> builder.add(Contact.class, ContactJsonAdapter::new))
+            .build();
 
     Contact contact = new Contact(44L, "rob", "foo");
 
@@ -40,9 +39,7 @@ class ContactTest {
 
   @Test
   void toJson_asBytes() {
-    Jsonb jsonb = Jsonb.builder()
-      .add(Contact.class, ContactJsonAdapter::new)
-      .build();
+    Jsonb jsonb = Jsonb.builder().add(Contact.class, ContactJsonAdapter::new).build();
 
     Contact contact = new Contact(44L, "rob", "foo");
 

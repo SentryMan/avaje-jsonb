@@ -1,6 +1,9 @@
 package io.avaje.jsonb.core;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 final class ViewDslParser {
 
@@ -15,8 +18,8 @@ final class ViewDslParser {
 
   ViewDsl parse(String dsl) {
     dsl = initialTrim(dsl);
-    char[] chars = dsl.toCharArray();
-    for (char ch : chars) {
+    final char[] chars = dsl.toCharArray();
+    for (final char ch : chars) {
       switch (ch) {
         case ',':
           tokenSplit();
@@ -84,7 +87,7 @@ final class ViewDslParser {
     }
 
     Context push(String last) {
-      Context child = new Context(this);
+      final Context child = new Context(this);
       nested.put(last, child);
       return child;
     }
@@ -94,13 +97,11 @@ final class ViewDslParser {
     }
 
     ViewDsl.Entry build() {
-      Map<String, ViewDsl.Entry> children = new LinkedHashMap<>();
-      for (Map.Entry<String, Context> entry : nested.entrySet()) {
+      final Map<String, ViewDsl.Entry> children = new LinkedHashMap<>();
+      for (final Map.Entry<String, Context> entry : nested.entrySet()) {
         children.put(entry.getKey(), entry.getValue().build());
       }
       return new ViewDsl.Entry(tokens, children);
     }
   }
-
-
 }

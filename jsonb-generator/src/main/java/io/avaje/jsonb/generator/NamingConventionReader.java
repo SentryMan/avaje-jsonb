@@ -1,9 +1,11 @@
 package io.avaje.jsonb.generator;
 
 import io.avaje.jsonb.Json;
-
-import javax.lang.model.element.*;
 import java.util.Map;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
 
 class NamingConventionReader {
 
@@ -15,12 +17,13 @@ class NamingConventionReader {
   private NamingConvention namingConvention;
 
   NamingConventionReader(TypeElement element) {
-    for (AnnotationMirror mirror : element.getAnnotationMirrors()) {
+    for (final AnnotationMirror mirror : element.getAnnotationMirrors()) {
       if (JSON_ANNOTATION.equals(mirror.getAnnotationType().toString())) {
-        for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : mirror.getElementValues().entrySet()) {
-          if (entry.getKey().toString().equals(NAMING_ATTRIBUTE)) {
+        for (final Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry :
+            mirror.getElementValues().entrySet()) {
+          if (NAMING_ATTRIBUTE.equals(entry.getKey().toString())) {
             namingConvention = NamingConvention.of(naming(entry.getValue().toString()));
-          } else if (entry.getKey().toString().equals(TYPEPROPERTY_ATTRIBUTE)) {
+          } else if (TYPEPROPERTY_ATTRIBUTE.equals(entry.getKey().toString())) {
             typeProperty = Util.trimQuotes(entry.getValue().toString());
           }
         }
@@ -29,7 +32,7 @@ class NamingConventionReader {
   }
 
   static Json.Naming naming(String entry) {
-    int pos = entry.lastIndexOf('.');
+    final int pos = entry.lastIndexOf('.');
     if (pos > -1) {
       entry = entry.substring(pos + 1);
     }

@@ -1,9 +1,9 @@
 package io.avaje.jsonb.generator;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import io.avaje.jsonb.Json;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class NamingConventionReaderTest {
 
@@ -21,8 +21,9 @@ class NamingConventionReaderTest {
     naming = NamingConventionReader.naming("io.avaje.jsonb.Json.Naming.LowerUnderscore");
     assertThat(naming).isEqualTo(Json.Naming.LowerUnderscore);
 
-    naming = NamingConventionReader.naming("io.avaje.jsonb.Json.Naming.io.avaje.jsonb.Json.Naming.LowerUnderscore");
+    naming =
+        NamingConventionReader.naming(
+            "io.avaje.jsonb.Json.Naming.io.avaje.jsonb.Json.Naming.LowerUnderscore");
     assertThat(naming).isEqualTo(Json.Naming.LowerUnderscore);
   }
-
 }

@@ -16,27 +16,18 @@
 package io.avaje.jsonb;
 
 import io.avaje.jsonb.spi.ViewBuilderAware;
-
 import java.lang.reflect.Type;
 
-/**
- * The core API for serialization to and from json.
- */
+/** The core API for serialization to and from json. */
 public abstract class JsonAdapter<T> {
 
-  /**
-   * Write the value to the writer.
-   */
+  /** Write the value to the writer. */
   public abstract void toJson(JsonWriter writer, T value);
 
-  /**
-   * Read the type from the reader.
-   */
+  /** Read the type from the reader. */
   public abstract T fromJson(JsonReader reader);
 
-  /**
-   * Return a null safe version of this adapter.
-   */
+  /** Return a null safe version of this adapter. */
   public final JsonAdapter<T> nullSafe() {
     if (this instanceof NullSafeAdapter) {
       return this;
@@ -45,28 +36,25 @@ public abstract class JsonAdapter<T> {
   }
 
   /**
-   * Return true if this adapter represents a json object or json array of objects that supports json views.
+   * Return true if this adapter represents a json object or json array of objects that supports
+   * json views.
    */
   public boolean isViewBuilderAware() {
     return false;
   }
 
-  /**
-   * Return the ViewBuilder.Aware for this adapter.
-   */
+  /** Return the ViewBuilder.Aware for this adapter. */
   public ViewBuilderAware viewBuild() {
     throw new IllegalStateException("This adapter is not ViewBuilderAware");
   }
 
-  /**
-   * Factory for creating a JsonAdapter.
-   */
+  /** Factory for creating a JsonAdapter. */
   public interface Factory {
 
     /**
      * Create and return a JsonAdapter given the type and annotations or return null.
-     * <p>
-     * Returning null means that the adapter could be created by another factory.
+     *
+     * <p>Returning null means that the adapter could be created by another factory.
      */
     JsonAdapter<?> create(Type type, Jsonb jsonb);
   }
