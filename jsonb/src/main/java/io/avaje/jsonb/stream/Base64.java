@@ -100,9 +100,12 @@ final class Base64 {
       // Encode the int into four chars
       dArr[d] = BA[i >>> 18 & 0x3f];
       d++;
-      dArr[d++] = BA[i >>> 12 & 0x3f];
-      dArr[d++] = BA[i >>> 6 & 0x3f];
-      dArr[d++] = BA[i & 0x3f];
+      dArr[d] = BA[i >>> 12 & 0x3f];
+      d++;
+      dArr[d] = BA[i >>> 6 & 0x3f];
+      d++;
+      dArr[d] = BA[i & 0x3f];
+      d++;
     }
 
     // Pad and encode last bits if source isn't even 24 bits.
@@ -163,8 +166,10 @@ final class Base64 {
       // Add the bytes
       dArr[d] = (byte) (i >> 16);
       d++;
-      dArr[d++] = (byte) (i >> 8);
-      dArr[d++] = (byte) i;
+      dArr[d] = (byte) (i >> 8);
+      d++;
+      dArr[d] = (byte) i;
+      d++;
 
       // If line separator, jump over it.
       if (sepCnt > 0 && ++cc == 19) {

@@ -133,7 +133,7 @@ final class JGenerator implements JsonGenerator {
     int cur = position + 1;
     for (int i = 0; i < len; i++) {
       final char c = value.charAt(i);
-      if ((c <= 31) || (c == '"') || (c == '\\') || (c >= 126)) {
+      if (c <= 31 || c == '"' || c == '\\' || c >= 126) {
         writeQuotedString(value, i, cur, len);
         return;
       }
@@ -151,21 +151,26 @@ final class JGenerator implements JsonGenerator {
       if (c == '"') {
         _result[cur] = ESCAPE;
         cur++;
-        _result[cur++] = QUOTE;
+        _result[cur] = QUOTE;
+        cur++;
       } else if (c == '\\') {
         _result[cur] = ESCAPE;
         cur++;
-        _result[cur++] = ESCAPE;
+        _result[cur] = ESCAPE;
+        cur++;
       } else if (c < 32) {
         switch (c) {
           case 8:
             _result[cur] = ESCAPE;
             cur++;
-            _result[cur++] = 'b';
+            _result[cur] = 'b';
+            cur++;
             break;
           case 9:
-            _result[cur++] = ESCAPE;
-            _result[cur++] = 't';
+            _result[cur] = ESCAPE;
+            cur++;
+            _result[cur] = 't';
+            cur++;
             break;
           case 10:
             _result[cur++] = ESCAPE;
@@ -297,36 +302,38 @@ final class JGenerator implements JsonGenerator {
             cur += 6;
             break;
         }
-      } else if (c < 0x007F) {
-        _result[cur] = (byte) c;
-        cur++;
       } else {
-        final int cp = Character.codePointAt(str, i);
-        if (Character.isSupplementaryCodePoint(cp)) {
-          i++;
-        }
-        if (cp == 0x007F) {
-          _result[cur] = (byte) cp;
-          cur++;
+        if (c < 0x007F) {
+          _result[cur] = (byte) c;
         } else {
-          if (cp <= 0x7FF) {
-            _result[cur] = (byte) (0xC0 | cp >> 6 & 0x1F);
-            cur++;
-          } else if (cp < 0xD800 || cp > 0xDFFF && cp <= 0xFFFF) {
-            _result[cur] = (byte) (0xE0 | cp >> 12 & 0x0F);
-            cur++;
-            _result[cur++] = (byte) (0x80 | cp >> 6 & 0x3F);
-          } else if (cp >= 0x10000 && cp <= 0x10FFFF) {
-            _result[cur] = (byte) (0xF0 | cp >> 18 & 0x07);
-            cur++;
-            _result[cur++] = (byte) (0x80 | cp >> 12 & 0x3F);
-            _result[cur++] = (byte) (0x80 | cp >> 6 & 0x3F);
-          } else {
-            throw new JsonIoException(
-                "Unknown unicode codepoint in string! " + Integer.toHexString(cp));
+          final int cp = Character.codePointAt(str, i);
+          if (Character.isSupplementaryCodePoint(cp)) {
+            i++;
           }
-          _result[cur++] = (byte) (0x80 | cp & 0x3F);
+          if (cp == 0x007F) {
+            _result[cur] = (byte) cp;
+          } else {
+            if (cp <= 0x7FF) {
+              _result[cur] = (byte) (0xC0 | cp >> 6 & 0x1F);
+            } else if (cp < 0xD800 || cp > 0xDFFF && cp <= 0xFFFF) {
+              _result[cur] = (byte) (0xE0 | cp >> 12 & 0x0F);
+              cur++;
+              _result[cur] = (byte) (0x80 | cp >> 6 & 0x3F);
+            } else if (cp >= 0x10000 && cp <= 0x10FFFF) {
+              _result[cur] = (byte) (0xF0 | cp >> 18 & 0x07);
+              cur++;
+              _result[cur] = (byte) (0x80 | cp >> 12 & 0x3F);
+              cur++;
+              _result[cur] = (byte) (0x80 | cp >> 6 & 0x3F);
+            } else {
+              throw new JsonIoException(
+                  "Unknown unicode codepoint in string! " + Integer.toHexString(cp));
+            }
+            cur++;
+            _result[cur] = (byte) (0x80 | cp & 0x3F);
+          }
         }
+        cur++;
       }
     }
     _result[cur] = QUOTE;

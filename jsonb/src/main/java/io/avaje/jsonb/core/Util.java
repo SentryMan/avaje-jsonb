@@ -85,20 +85,15 @@ public final class Util {
       final ParameterizedType p = (ParameterizedType) type;
       return new ParameterizedTypeImpl(
           p.getOwnerType(), p.getRawType(), p.getActualTypeArguments());
-
-    } else if (type instanceof GenericArrayType) {
+    }
+    if (type instanceof GenericArrayType) {
       if (type instanceof GenericArrayTypeImpl) return type;
       final GenericArrayType g = (GenericArrayType) type;
       return new GenericArrayTypeImpl(g.getGenericComponentType());
-
-    } else if (type instanceof WildcardType) {
-      if (type instanceof WildcardTypeImpl) return type;
-      final WildcardType w = (WildcardType) type;
-      return new WildcardTypeImpl(w.getUpperBounds(), w.getLowerBounds());
-
-    } else {
-      return type; // This type is unsupported!
     }
+    if (!(type instanceof WildcardType) || (type instanceof WildcardTypeImpl)) return type;
+    final WildcardType w = (WildcardType) type;
+    return new WildcardTypeImpl(w.getUpperBounds(), w.getLowerBounds());
   }
 
   /** If type is a "? extends X" wildcard, returns X; otherwise returns type unchanged. */
@@ -393,8 +388,7 @@ public final class Util {
     private final Type lowerBound;
 
     WildcardTypeImpl(Type[] upperBounds, Type[] lowerBounds) {
-      if ((lowerBounds.length > 1) || (upperBounds.length != 1))
-        throw new IllegalArgumentException();
+      if (lowerBounds.length > 1 || upperBounds.length != 1) throw new IllegalArgumentException();
 
       if (lowerBounds.length == 1) {
         if (lowerBounds[0] == null) throw new NullPointerException();
@@ -439,9 +433,8 @@ public final class Util {
       }
       if (upperBound == Object.class) {
         return "?";
-      } else {
-        return "? extends " + typeToString(upperBound);
       }
+      return "? extends " + typeToString(upperBound);
     }
   }
 
@@ -491,17 +484,17 @@ public final class Util {
       // suspects some pathological case related to nested classes exists.
       final Type rawType = parameterizedType.getRawType();
       return (Class<?>) rawType;
-
-    } else if (type instanceof GenericArrayType) {
+    }
+    if (type instanceof GenericArrayType) {
       final Type componentType = ((GenericArrayType) type).getGenericComponentType();
       return Array.newInstance(rawType(componentType), 0).getClass();
-
-    } else if (type instanceof TypeVariable) {
+    }
+    if (type instanceof TypeVariable) {
       // We could use the variable's bounds, but that won't work if there are multiple. having a raw
       // type that's more general than necessary is okay.
       return Object.class;
-
-    } else if (type instanceof WildcardType) {
+    }
+    if (type instanceof WildcardType) {
       return rawType(((WildcardType) type).getUpperBounds()[0]);
 
     } else {
@@ -542,8 +535,8 @@ public final class Util {
             ((Class<?>) a).getComponentType(), ((GenericArrayType) b).getGenericComponentType());
       }
       return a.equals(b); // Class already specifies equals().
-
-    } else if (a instanceof ParameterizedType) {
+    }
+    if (a instanceof ParameterizedType) {
       if (!(b instanceof ParameterizedType)) return false;
       final ParameterizedType pa = (ParameterizedType) a;
       final ParameterizedType pb = (ParameterizedType) b;
@@ -558,8 +551,8 @@ public final class Util {
       return equals(pa.getOwnerType(), pb.getOwnerType())
           && pa.getRawType().equals(pb.getRawType())
           && Arrays.equals(aTypeArguments, bTypeArguments);
-
-    } else if (a instanceof GenericArrayType) {
+    }
+    if (a instanceof GenericArrayType) {
       if (b instanceof Class) {
         return equals(
             ((Class<?>) b).getComponentType(), ((GenericArrayType) a).getGenericComponentType());
@@ -568,8 +561,8 @@ public final class Util {
       final GenericArrayType ga = (GenericArrayType) a;
       final GenericArrayType gb = (GenericArrayType) b;
       return equals(ga.getGenericComponentType(), gb.getGenericComponentType());
-
-    } else if (a instanceof WildcardType) {
+    }
+    if (a instanceof WildcardType) {
       if (!(b instanceof WildcardType)) return false;
       final WildcardType wa = (WildcardType) a;
       final WildcardType wb = (WildcardType) b;
@@ -629,8 +622,7 @@ public final class Util {
     }
     if (type instanceof Class) {
       return ((Class<?>) type).getComponentType();
-    } else {
-      return null;
     }
+    return null;
   }
 }

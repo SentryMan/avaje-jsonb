@@ -75,7 +75,8 @@ final class NumberWriter {
     if (start == 0) {
       buf[pos] = (byte) (v >> 16);
       pos++;
-      buf[pos++] = (byte) (v >> 8);
+      buf[pos] = (byte) (v >> 8);
+      pos++;
     } else if (start == 1) {
       buf[pos] = (byte) (v >> 8);
       pos++;

@@ -146,17 +146,16 @@ class TypeReader {
   }
 
   private void matchFieldToSetter(FieldReader field) {
-    if (!matchFieldToSetter2(field, false) && !matchFieldToSetter2(field, true)) {
-      if (!matchFieldToSetterByParam(field)) {
-        if (!field.isPublicField()) {
-          context.logError(
-              "Non public field "
-                  + baseType
-                  + " "
-                  + field.fieldName()
-                  + " with no matching setter or constructor?");
-        }
-      }
+    if (!matchFieldToSetter2(field, false)
+        && !matchFieldToSetter2(field, true)
+        && !matchFieldToSetterByParam(field)
+        && !field.isPublicField()) {
+      context.logError(
+          "Non public field "
+              + baseType
+              + " "
+              + field.fieldName()
+              + " with no matching setter or constructor?");
     }
   }
 
@@ -202,19 +201,19 @@ class TypeReader {
   }
 
   private void matchFieldToGetter(FieldReader field) {
-    if (!matchFieldToGetter2(field, false) && !matchFieldToGetter2(field, true)) {
-      if (!field.isPublicField()) {
-        nonAccessibleField = true;
-        if (hasJsonAnnotation) {
-          context.logError(
-              "Non accessible field "
-                  + baseType
-                  + " "
-                  + field.fieldName()
-                  + " with no matching getter?");
-        } else {
-          context.logDebug("Non accessible field " + baseType + " " + field.fieldName());
-        }
+    if (!matchFieldToGetter2(field, false)
+        && !matchFieldToGetter2(field, true)
+        && !field.isPublicField()) {
+      nonAccessibleField = true;
+      if (hasJsonAnnotation) {
+        context.logError(
+            "Non accessible field "
+                + baseType
+                + " "
+                + field.fieldName()
+                + " with no matching getter?");
+      } else {
+        context.logDebug("Non accessible field " + baseType + " " + field.fieldName());
       }
     }
   }

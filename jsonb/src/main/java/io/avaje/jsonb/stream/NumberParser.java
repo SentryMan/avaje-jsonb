@@ -428,11 +428,11 @@ final class NumberParser {
       }
       if (expDiff > 0) {
         return number * POW_10[expDiff - 1];
-      } else if (expDiff < 0) {
-        return number / POW_10[-expDiff - 1];
-      } else {
-        return number;
       }
+      if (expDiff < 0) {
+        return number / POW_10[-expDiff - 1];
+      }
+      return number;
     } else if (ch == 'e' || ch == 'E') {
       return doubleExponent(reader, value, 0, 0, buf, start, end, offset, i);
     }
@@ -478,10 +478,10 @@ final class NumberParser {
     if (fraction == 0) {
       if (exp == 0 || whole == 0) return whole;
       if (exp > 0 && exp < POW_10.length) return whole * POW_10[exp - 1];
-      else if (exp < 0 && -exp < POW_10.length) return whole / POW_10[-exp - 1];
-      else if (reader.doublePrecision != JParser.DoublePrecision.HIGH) {
+      if (exp < 0 && -exp < POW_10.length) return whole / POW_10[-exp - 1];
+      if (reader.doublePrecision != JParser.DoublePrecision.HIGH) {
         if (exp > 0 && exp < 300) return whole * Math.pow(10, exp);
-        else if (exp > -300 && exp < 0) return whole / Math.pow(10, exp);
+        if (exp > -300 && exp < 0) return whole / Math.pow(10, exp);
       }
     } else if (exp == 0) return whole + fraction;
     else if (exp > 0 && exp < POW_10.length)

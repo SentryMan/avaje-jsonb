@@ -461,7 +461,8 @@ final class JParser implements JsonParser {
       // there is no chance that we can decode the string without instantiating
       // a temporary buffer, so quit this loop
       if ((bb ^ '\\') < 1) break;
-      _tmp[i++] = (char) bb;
+      _tmp[i] = (char) bb;
+      i++;
     }
     if (i == _tmp.length) {
       final int newSize = chars.length * 2;
@@ -554,8 +555,10 @@ final class JParser implements JsonParser {
 
               // split surrogates
               final int sup = bc - 0x10000;
-              _tmp[soFar++] = (char) ((sup >>> 10) + 0xd800);
-              _tmp[soFar++] = (char) ((sup & 0x3ff) + 0xdc00);
+              _tmp[soFar] = (char) ((sup >>> 10) + 0xd800);
+              soFar++;
+              _tmp[soFar] = (char) ((sup & 0x3ff) + 0xdc00);
+              soFar++;
               continue;
             }
           }
@@ -719,7 +722,8 @@ final class JParser implements JsonParser {
         ci++;
         if (b == '\\') {
           if (ci == buffer.length) throw newParseError("Expecting '\"' for attribute name end");
-          b = buffer[ci++];
+          b = buffer[ci];
+          ci++;
         } else if (b == '"') {
           break;
         }
@@ -903,7 +907,7 @@ final class JParser implements JsonParser {
       if (key == null) {
         key = lastFieldName();
       }
-      if ((read() != ':') && (!wasWhiteSpace() || nextToken() != ':')) {
+      if (read() != ':' && (!wasWhiteSpace() || nextToken() != ':')) {
         throw newParseError("Expecting ':' after attribute name");
       }
       nextToken(); // position to read the value/next

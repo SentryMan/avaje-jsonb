@@ -131,8 +131,7 @@ class BeanReader {
     }
     final Set<String> uniqueTypes = new HashSet<>();
     for (final FieldReader allField : allFields) {
-      if ((allField.include() && !allField.isRaw())
-          && uniqueTypes.add(allField.adapterShortType())) {
+      if (allField.include() && !allField.isRaw() && uniqueTypes.add(allField.adapterShortType())) {
         allField.writeField(writer);
       }
     }
@@ -248,7 +247,7 @@ class BeanReader {
     writer.eol();
     writer.append("  @Override").eol();
     writer.append("  public %s fromJson(JsonReader reader) {", shortName, varName).eol();
-    final boolean directLoad = (constructor == null && !hasSubTypes);
+    final boolean directLoad = constructor == null && !hasSubTypes;
     if (directLoad) {
       // default public constructor
       writer.append("    %s _$%s = new %s();", shortName, varName, shortName).eol();
@@ -324,7 +323,7 @@ class BeanReader {
   }
 
   String constructorParamName(String name) {
-    if ((unmappedField != null) && unmappedField.fieldName().equals(name)) {
+    if (unmappedField != null && unmappedField.fieldName().equals(name)) {
       return "unmapped";
     }
     return "_val$" + name;

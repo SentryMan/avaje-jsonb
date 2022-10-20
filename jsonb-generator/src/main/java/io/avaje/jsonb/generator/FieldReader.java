@@ -65,7 +65,7 @@ class FieldReader {
   }
 
   static String trimAnnotations(String type) {
-    int pos = type.indexOf("@");
+    final int pos = type.indexOf("@");
     if (pos == -1) {
       return type;
     }
