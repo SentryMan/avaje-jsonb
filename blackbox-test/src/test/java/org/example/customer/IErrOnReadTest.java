@@ -22,7 +22,7 @@ class IErrOnReadTest {
     try {
       type.toJson(bean, baos);
     } catch (JsonException expectedForTest) {
-      assertThat(expectedForTest.getCause()).hasMessage("error reading lastName");
+      assertThat(expectedForTest.getCause().getCause()).hasMessage("error reading lastName");
     }
     assertThat(baos.toByteArray()).describedAs("no flush to outputStream expected").hasSize(0);
   }

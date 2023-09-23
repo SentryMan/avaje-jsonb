@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Stream;
 
 class DJsonType<T> implements JsonType<T> {
@@ -18,6 +19,7 @@ class DJsonType<T> implements JsonType<T> {
   protected final DJsonb jsonb;
   protected final Type type;
   protected final JsonAdapter<T> adapter;
+  private static final ForkJoinPool pool = ForkJoinPool.commonPool();
 
   DJsonType(DJsonb jsonb, Type type, JsonAdapter<T> adapter) {
     this.jsonb = jsonb;
@@ -54,13 +56,18 @@ class DJsonType<T> implements JsonType<T> {
   public final JsonType<Optional<T>> optional() {
     return jsonb.type(Types.optionalOf(type));
   }
-  
+
   @Override
   public final String toJson(T value) {
-    try (BufferedJsonWriter writer = jsonb.bufferedWriter()) {
-      toJson(value, writer);
-      return writer.result();
-    }
+
+    return pool.submit(
+            () -> {
+              try (BufferedJsonWriter writer = jsonb.bufferedWriter()) {
+                toJson(value, writer);
+                return writer.result();
+              }
+            })
+        .join();
   }
 
   @Override
@@ -74,10 +81,15 @@ class DJsonType<T> implements JsonType<T> {
 
   @Override
   public final byte[] toJsonBytes(T value) {
-    try (BytesJsonWriter writer = jsonb.bufferedWriterAsBytes()) {
-      toJson(value, writer);
-      return writer.result();
-    }
+
+    return pool.submit(
+            () -> {
+              try (BytesJsonWriter writer = jsonb.bufferedWriterAsBytes()) {
+                toJson(value, writer);
+                return writer.result();
+              }
+            })
+        .join();
   }
 
   @Override
@@ -99,17 +111,30 @@ class DJsonType<T> implements JsonType<T> {
 
   @Override
   public final void toJson(T value, OutputStream outputStream) {
-    try (JsonWriter writer = jsonb.writer(outputStream)) {
-      toJson(value, writer);
-    }
+
+    Runnable runnable =
+        () -> {
+          try (JsonWriter writer = jsonb.writer(outputStream)) {
+            toJson(value, writer);
+          }
+        };
+
+    pool.submit(runnable).join();
+
     close(outputStream);
   }
 
   @Override
   public final void toJson(T value, JsonOutput output) {
-    try (JsonWriter writer = jsonb.writer(output)) {
-      toJson(value, writer);
-    }
+
+    Runnable runnable =
+        () -> {
+          try (JsonWriter writer = jsonb.writer(output)) {
+            toJson(value, writer);
+          }
+        };
+
+    pool.submit(runnable).join();
     close(output);
   }
 
@@ -123,46 +148,71 @@ class DJsonType<T> implements JsonType<T> {
 
   @Override
   public final Stream<T> stream(JsonReader reader) {
+
     return new StreamAdapter<>(adapter).fromJson(reader);
   }
 
   @Override
   public final T fromObject(Object value) {
-    try (JsonReader reader = jsonb.objectReader(value)) {
-      return adapter.fromJson(reader);
-    }
+    return pool.submit(
+            () -> {
+              try (JsonReader reader = jsonb.objectReader(value)) {
+                return adapter.fromJson(reader);
+              }
+            })
+        .join();
   }
 
   @Override
   public final T fromJson(JsonReader reader) {
+
     return adapter.fromJson(reader);
   }
 
   @Override
   public T fromJson(String content) {
-    try (JsonReader reader = jsonb.reader(content)) {
-      return adapter.fromJson(reader);
-    }
+    return pool.submit(
+            () -> {
+              try (JsonReader reader = jsonb.reader(content)) {
+                return adapter.fromJson(reader);
+              }
+            })
+        .join();
   }
 
   @Override
   public T fromJson(byte[] content) {
-    try (JsonReader reader = jsonb.reader(content)) {
-      return adapter.fromJson(reader);
-    }
+
+    return pool.submit(
+            () -> {
+              try (JsonReader reader = jsonb.reader(content)) {
+                return adapter.fromJson(reader);
+              }
+            })
+        .join();
   }
 
   @Override
   public T fromJson(Reader content) {
-    try (JsonReader reader = jsonb.reader(content)) {
-      return adapter.fromJson(reader);
-    }
+
+    return pool.submit(
+            () -> {
+              try (JsonReader reader = jsonb.reader(content)) {
+                return adapter.fromJson(reader);
+              }
+            })
+        .join();
   }
 
   @Override
   public T fromJson(InputStream inputStream) {
-    try (JsonReader reader = jsonb.reader(inputStream)) {
-      return adapter.fromJson(reader);
-    }
+
+    return pool.submit(
+            () -> {
+              try (JsonReader reader = jsonb.reader(inputStream)) {
+                return adapter.fromJson(reader);
+              }
+            })
+        .join();
   }
 }
