@@ -171,7 +171,7 @@ final class ClassReader implements BeanReader {
     if (!hasSubTypes) {
       importTypes.add(Constants.METHODHANDLE);
     }
-    if (Util.validImportType(type) && !ProcessingContext.isImported(beanType)) {
+    if (Util.validImportType(type)) {
       importTypes.add(type);
     }
     for (final FieldReader allField : allFields) {
