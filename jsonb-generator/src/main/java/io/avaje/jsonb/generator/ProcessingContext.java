@@ -7,13 +7,16 @@ import static io.avaje.jsonb.generator.APContext.jdkVersion;
 import static io.avaje.jsonb.generator.APContext.logError;
 import static io.avaje.jsonb.generator.APContext.logWarn;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.nio.file.Paths;
 import java.util.*;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeMirror;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
 
@@ -24,8 +27,8 @@ final class ProcessingContext {
   private static final class Ctx {
     private final Map<String, JsonPrism> importedJsonMap = new HashMap<>();
     private final Map<String, List<SubTypePrism>> importedSubtypeMap = new HashMap<>();
+    private final Set<String> services = new TreeSet<>();
     private final boolean injectPresent;
-    private boolean validated;
 
     Ctx(ProcessingEnvironment env) {
       this.injectPresent = env.getElementUtils().getTypeElement("io.avaje.inject.Component") != null;
@@ -65,58 +68,44 @@ final class ProcessingContext {
     return Optional.ofNullable(CTX.get().importedJsonMap.get(type.asType().toString()));
   }
 
+  static boolean isImported(Element element) {
+    var moduleName = APContext.getProjectModuleElement().getQualifiedName();
+    return !APContext.elements().getModuleOf(element).getQualifiedName().contentEquals(moduleName);
+  }
+
   static List<SubTypePrism> importedSubtypes(TypeElement type) {
     return CTX.get().importedSubtypeMap.getOrDefault(type.asType().toString(), List.of());
   }
 
   private static boolean buildPluginAvailable() {
-    return resourceExists("target/avaje-plugin-exists.txt")
-      || resourceExists("build/avaje-plugin-exists.txt");
-  }
-
-  private static boolean resourceExists(String relativeName) {
     try {
-      final String resource =
-        filer()
-          .getResource(StandardLocation.CLASS_OUTPUT, "", relativeName)
-          .toUri()
-          .toString()
-          .replaceFirst("/target/classes", "")
-          .replaceFirst("/build/classes/java/main", "");
-      return Paths.get(new URI(resource)).toFile().exists();
+      return APContext.getBuildResource("avaje-plugin-exists.txt").toFile().exists();
     } catch (final Exception e) {
       return false;
     }
   }
 
-  static void validateModule(String fqn) {
+  static void validateModule() {
     var module = getProjectModuleElement();
-    if (module != null && !CTX.get().validated && !module.isUnnamed()) {
+    if (module != null && !module.isUnnamed()) {
       var injectPresent = CTX.get().injectPresent;
-      CTX.get().validated = true;
 
       try (var reader = getModuleInfoReader()) {
         var moduleInfo = new ModuleInfoReader(module, reader);
 
+        moduleInfo.validateServices("io.avaje.jsonb.spi.JsonbExtension", CTX.get().services);
+
         boolean noInjectPlugin =
           injectPresent && !moduleInfo.containsOnModulePath("io.avaje.jsonb.plugin");
 
-        var noProvides =
-          moduleInfo.provides().stream()
-            .flatMap(s -> s.implementations().stream())
-            .noneMatch(s -> s.contains(fqn));
-
         var buildPluginAvailable = buildPluginAvailable();
-        if (noProvides && !buildPluginAvailable) {
-          logError(module, "Missing `provides io.avaje.jsonb.Jsonb.GeneratedComponent with %s;`", fqn);
-        }
 
         final var noDirectJsonb =
           moduleInfo.requires().stream()
             .noneMatch(r -> r.getDependency().getQualifiedName().contentEquals("io.avaje.jsonb"));
 
         if (noInjectPlugin && (!buildPluginAvailable || noDirectJsonb)) {
-          logWarn(module, "`requires io.avaje.jsonb.plugin` must be explicity added or else avaje-inject may fail to detect and wire the default Jsonb instance", fqn);
+          logWarn(module, "`requires io.avaje.jsonb.plugin` must be explicitly added or else avaje-inject may fail to detect and wire the default Jsonb instance");
         }
 
       } catch (Exception e) {
@@ -125,8 +114,32 @@ final class ProcessingContext {
     }
   }
 
+  static void addJsonSpi(String spi) {
+    CTX.get().services.add(spi);
+  }
+
   static void clear() {
     CTX.remove();
     APContext.clear();
+  }
+
+  static Set<String> readExistingMetaInfServices() {
+    var services = CTX.get().services;
+    try (final var file =
+           APContext.filer()
+             .getResource(StandardLocation.CLASS_OUTPUT, "", Constants.META_INF_COMPONENT)
+             .toUri()
+             .toURL()
+             .openStream();
+         final var buffer = new BufferedReader(new InputStreamReader(file));) {
+
+      String line;
+      while ((line = buffer.readLine()) != null) {
+        line.replaceAll("\\s", "").replace(",", "\n").lines().forEach(services::add);
+      }
+    } catch (Exception e) {
+      // not a critical error
+    }
+    return services;
   }
 }

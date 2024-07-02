@@ -29,7 +29,8 @@ final class SimpleComponentWriter {
       fileObject = createSourceFile(name);
     }
     if (!metaData.isEmpty()) {
-      ProcessingContext.validateModule(name);
+      ProcessingContext.addJsonSpi(metaData.fullName());
+      ProcessingContext.validateModule();
     }
   }
 
@@ -48,10 +49,11 @@ final class SimpleComponentWriter {
   }
 
   void writeMetaInf() throws IOException {
+    var services = ProcessingContext.readExistingMetaInfServices();
     final FileObject fileObject = createMetaInfWriterFor(Constants.META_INF_COMPONENT);
     if (fileObject != null) {
       final Writer writer = fileObject.openWriter();
-      writer.write(metaData.fullName());
+      writer.write(String.join("\n", services));
       writer.close();
     }
   }
@@ -91,7 +93,7 @@ final class SimpleComponentWriter {
     writeMetaDataEntry(all);
     writer.append("})").eol();
 
-    writer.append("public class %s implements Jsonb.GeneratedComponent {", shortName).eol().eol();
+    writer.append("public class %s implements GeneratedComponent {", shortName).eol().eol();
   }
 
   private void writeMetaDataEntry(List<String> entries) {

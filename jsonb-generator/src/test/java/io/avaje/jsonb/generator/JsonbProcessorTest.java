@@ -26,7 +26,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-class ProcessorTest {
+class JsonbProcessorTest {
 
   @AfterEach
   void deleteGeneratedFiles() throws IOException {
@@ -65,7 +65,7 @@ class ProcessorTest {
             List.of("--release=" + Integer.getInteger("java.specification.version")),
             null,
             files);
-    task.setProcessors(List.of(new Processor()));
+    task.setProcessors(List.of(new JsonbProcessor()));
 
     assertThat(task.call()).isTrue();
   }
@@ -86,7 +86,7 @@ class ProcessorTest {
             List.of("--release=" + Integer.getInteger("java.specification.version")),
             null,
             files);
-    task.setProcessors(List.of(new Processor()));
+    task.setProcessors(List.of(new JsonbProcessor()));
 
     assertThat(task.call()).isFalse();
     Files.walk(Paths.get("java").toAbsolutePath())

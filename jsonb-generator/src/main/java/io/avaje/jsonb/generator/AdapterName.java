@@ -9,18 +9,23 @@ final class AdapterName {
   final String fullName;
 
   AdapterName(TypeElement origin) {
-    String originName = origin.getQualifiedName().toString();
-    String name = origin.getSimpleName().toString();
-    String originPackage = Util.packageOf(originName);
-    if (origin.getNestingKind().isNested()) {
-      String parent = Util.shortName(originPackage);
-      originPackage = Util.packageOf(originPackage);
-      shortName = parent + "$" + name;
+    String originPackage = APContext.elements().getPackageOf(origin).toString();
+    var name = shortName(origin);
+    shortName = name.substring(0, name.length() - 1);
+    if ("".equals(originPackage)) {
+      this.adapterPackage = "jsonb";
     } else {
-      shortName = name;
+      this.adapterPackage = ProcessingContext.isImported(origin) ? originPackage + ".jsonb" : originPackage;
     }
-    this.adapterPackage = "".equals(originPackage) ? "jsonb" : originPackage + ".jsonb";
     this.fullName = adapterPackage + "." + shortName + "JsonAdapter";
+  }
+
+  private String shortName(TypeElement origin) {
+    var sb = new StringBuilder();
+    if (origin.getNestingKind().isNested()) {
+      sb.append(shortName((TypeElement) origin.getEnclosingElement()));
+    }
+    return sb.append(Util.shortName(origin.getSimpleName().toString())).append("$").toString();
   }
 
   String shortName() {

@@ -16,7 +16,11 @@ import javax.lang.model.util.ElementFilter;
 import io.avaje.prism.GenerateAPContext;
 import io.avaje.prism.GenerateModuleInfoReader;
 
+import static java.util.stream.Collectors.joining;
+
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -29,9 +33,10 @@ import java.util.stream.Stream;
   JSON_IMPORT,
   JSON_IMPORT_LIST,
   JSON_MIXIN,
-  ValuePrism.PRISM_TYPE
+  ValuePrism.PRISM_TYPE,
+  "io.avaje.spi.ServiceProvider"
 })
-public final class Processor extends AbstractProcessor {
+public final class JsonbProcessor extends AbstractProcessor {
 
   private final ComponentMetaData metaData = new ComponentMetaData();
   private final List<BeanReader> allReaders = new ArrayList<>();
@@ -52,6 +57,22 @@ public final class Processor extends AbstractProcessor {
     super.init(processingEnv);
     ProcessingContext.init(processingEnv);
     this.componentWriter = new SimpleComponentWriter(metaData);
+    // write a note in target so that other apts can know inject is running
+    try {
+      var file = APContext.getBuildResource("avaje-processors.txt");
+      var addition = new StringBuilder();
+      if (file.toFile().exists()) {
+        var result = Stream.concat(Files.lines(file), Stream.of("avaje-jsonb-generator"))
+          .distinct()
+          .collect(joining("\n"));
+        addition.append(result);
+      } else {
+        addition.append("avaje-jsonb-generator");
+      }
+      Files.writeString(file, addition, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+    } catch (IOException e) {
+      // not an issue worth failing over
+    }
   }
 
   /**
@@ -69,16 +90,23 @@ public final class Processor extends AbstractProcessor {
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment round) {
     APContext.setProjectModuleElement(annotations, round);
     readModule();
-    writeValueAdapters(round.getElementsAnnotatedWith(typeElement(ValuePrism.PRISM_TYPE)));
-    writeAdapters(round.getElementsAnnotatedWith(typeElement(JSON)));
-    writeAdaptersForMixInTypes(round.getElementsAnnotatedWith(typeElement(JSON_MIXIN)));
-    writeAdaptersForImportedList(round.getElementsAnnotatedWith(typeElement(JSON_IMPORT_LIST)));
-    writeAdaptersForImported(round.getElementsAnnotatedWith(typeElement(JSON_IMPORT)));
-    registerCustomAdapters(round.getElementsAnnotatedWith(typeElement(CustomAdapterPrism.PRISM_TYPE)));
+    getElements(round, ValuePrism.PRISM_TYPE).ifPresent(this::writeValueAdapters);
+    getElements(round, JSON).ifPresent(this::writeAdapters);
+    getElements(round, JSON_MIXIN).ifPresent(this::writeAdaptersForMixInTypes);
+    getElements(round, JSON_IMPORT_LIST).ifPresent(this::writeAdaptersForImportedList);
+    getElements(round, JSON_IMPORT).ifPresent(this::writeAdaptersForImported);
+    getElements(round, CustomAdapterPrism.PRISM_TYPE).ifPresent(this::registerCustomAdapters);
+    getElements(round, "io.avaje.spi.ServiceProvider").ifPresent(this::registerSPI);
+
     initialiseComponent();
     cascadeTypes();
     writeComponent(round.processingOver());
     return false;
+  }
+
+  // Optional because annotations are not guaranteed to exist
+  private Optional<? extends Set<? extends Element>> getElements(RoundEnvironment round, String name) {
+    return Optional.ofNullable(typeElement(name)).map(round::getElementsAnnotatedWith);
   }
 
   private void registerCustomAdapters(Set<? extends Element> elements) {
@@ -86,30 +114,24 @@ public final class Processor extends AbstractProcessor {
       final var type = typeElement.getQualifiedName().toString();
       if (CustomAdapterPrism.getInstanceOn(typeElement).isGeneric()) {
         ElementFilter.fieldsIn(typeElement.getEnclosedElements()).stream()
-            .filter(isStaticFactory())
-            .findFirst()
-            .ifPresentOrElse(
-                x -> {},
-                () ->
-                    logError(
-                        typeElement,
-                        "Generic adapters require a public static JsonAdapter.Factory FACTORY field"));
+          .filter(isStaticFactory())
+          .findFirst()
+          .ifPresentOrElse(
+            x -> {},
+            () -> logError(typeElement, "Generic adapters require a public static JsonAdapter.Factory FACTORY field"));
 
         metaData.addFactory(type);
       } else {
         ElementFilter.constructorsIn(typeElement.getEnclosedElements()).stream()
-            .filter(m -> m.getModifiers().contains(Modifier.PUBLIC))
-            .filter(m -> m.getParameters().size() == 1)
-            .map(m -> m.getParameters().get(0).asType().toString())
-            .map(Util::trimAnnotations)
-            .filter("io.avaje.jsonb.Jsonb"::equals)
-            .findAny()
-            .ifPresentOrElse(
-                x -> {},
-                () ->
-                    logError(
-                        typeElement,
-                        "Non-Generic adapters must have a public constructor with a single Jsonb parameter"));
+          .filter(m -> m.getModifiers().contains(Modifier.PUBLIC))
+          .filter(m -> m.getParameters().size() == 1)
+          .map(m -> m.getParameters().get(0).asType().toString())
+          .map(Util::trimAnnotations)
+          .filter("io.avaje.jsonb.Jsonb"::equals)
+          .findAny()
+          .ifPresentOrElse(
+            x -> {},
+            () -> logError(typeElement, "Non-Generic adapters must have a public constructor with a single Jsonb parameter"));
 
         metaData.add(type);
       }
@@ -207,7 +229,6 @@ public final class Processor extends AbstractProcessor {
       final TypeMirror mirror = MixInPrism.getInstanceOn(mixin).value();
       final String importType = mirror.toString();
       final TypeElement element = asTypeElement(mirror);
-
       mixInImports.add(importType);
       writeAdapterForMixInType(element, typeElement(mixin.asType().toString()));
     }
@@ -232,7 +253,7 @@ public final class Processor extends AbstractProcessor {
     for (final TypeMirror importType : importPrism.value()) {
       // if imported by mixin annotation skip
       if (mixInImports.contains(importType.toString())) {
-        return;
+        continue;
       }
       writeAdapterForImportedType(asTypeElement(importType), implementationType(importPrism));
     }
@@ -307,6 +328,7 @@ public final class Processor extends AbstractProcessor {
       if (beanReader.hasJsonAnnotation()) {
         logError("Error JsonAdapter due to nonAccessibleField for %s ", beanReader);
       }
+      logNote("Skipped writing JsonAdapter for %s due to non accessible fields", beanReader);
       return;
     }
     try {
@@ -321,5 +343,17 @@ public final class Processor extends AbstractProcessor {
     } catch (final IOException e) {
       logError("Error writing JsonAdapter for %s %s", beanReader, e);
     }
+  }
+
+  private void registerSPI(Set<? extends Element> beans) {
+    ElementFilter.typesIn(beans).stream()
+      .filter(this::isExtension)
+      .map(TypeElement::getQualifiedName)
+      .map(Object::toString)
+      .forEach(ProcessingContext::addJsonSpi);
+  }
+
+  private boolean isExtension(TypeElement te) {
+    return APContext.isAssignable(te, "io.avaje.jsonb.spi.JsonbExtension");
   }
 }
