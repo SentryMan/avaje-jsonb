@@ -5,6 +5,7 @@ import static io.avaje.jsonb.generator.APContext.createSourceFile;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -61,8 +62,12 @@ final class SimpleComponentWriter {
   private void writeRegister() {
     writer.append("  @Override").eol();
     writer.append("  public void register(Jsonb.Builder builder) {").eol();
-    final List<String> strings = metaData.allFactories();
-    for (final String adapterFullName : strings) {
+
+    for (final String adapterFullName : metaData.withTypes()) {
+      final String adapterShortName = Util.shortName(adapterFullName);
+      writer.append("    builder.add(%s.class, %s::new);", adapterShortName, adapterShortName).eol();
+    }
+    for (final String adapterFullName : metaData.allFactories()) {
       final String adapterShortName = Util.shortName(adapterFullName);
       writer.append("    builder.add(%s.FACTORY);", adapterShortName).eol();
     }
@@ -89,11 +94,12 @@ final class SimpleComponentWriter {
       writer.append("})").eol();
     }
     writer.append("@MetaData({");
-    final List<String> all = metaData.all();
+    final List<String> all = new ArrayList<>(metaData.all());
+    all.addAll(metaData.withTypes());
     writeMetaDataEntry(all);
     writer.append("})").eol();
 
-    writer.append("public class %s implements GeneratedComponent {", shortName).eol().eol();
+    writer.append("public %sclass %s implements GeneratedComponent {", Util.valhalla(), shortName).eol().eol();
   }
 
   private void writeMetaDataEntry(List<String> entries) {
@@ -108,11 +114,13 @@ final class SimpleComponentWriter {
 
   private void writeImports() {
     importTypes.add(Constants.JSONB);
-    importTypes.add(Constants.JSONB_SPI);
     importTypes.addAll(metaData.allImports());
+    importTypes.add("io.avaje.jsonb.spi.Generated");
+    importTypes.add("io.avaje.jsonb.spi.GeneratedComponent");
+    importTypes.add("io.avaje.jsonb.spi.MetaData");
 
     for (final String importType : importTypes) {
-      if (Util.validImportType(importType)) {
+      if (Util.validImportType(importType, metaData.packageName())) {
         writer.append("import %s;", importType).eol();
       }
     }

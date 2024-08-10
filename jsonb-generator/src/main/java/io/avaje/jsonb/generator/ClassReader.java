@@ -70,7 +70,6 @@ final class ClassReader implements BeanReader {
     subTypes.stream().map(TypeSubTypeMeta::type).forEach(importTypes::add);
 
     final var userTypeField = allFields.stream().filter(f -> f.propertyName().equals(typePropertyKey())).findAny();
-
     this.usesTypeProperty = userTypeField.isPresent();
     this.useEnum =
       userTypeField
@@ -165,13 +164,11 @@ final class ClassReader implements BeanReader {
       importTypes.add(Constants.REFLECT_TYPE);
       importTypes.add(Constants.PARAMETERIZED_TYPE);
     }
-    importTypes.add(Constants.JSONB_WILD);
     importTypes.add(Constants.IOEXCEPTION);
-    importTypes.add(Constants.JSONB_SPI);
     if (!hasSubTypes) {
       importTypes.add(Constants.METHODHANDLE);
     }
-    if (Util.validImportType(type) && !ProcessingContext.isImported(beanType)) {
+    if (!ProcessingContext.isImported(beanType)) {
       importTypes.add(type);
     }
     for (final FieldReader allField : allFields) {
@@ -183,19 +180,29 @@ final class ClassReader implements BeanReader {
     if (implementation != null) {
       implementation.addImported(importTypes);
     }
+
+    if (supportsViewBuilder()) {
+      importTypes.add("io.avaje.jsonb.spi.ViewBuilder");
+      importTypes.add("io.avaje.jsonb.spi.ViewBuilderAware");
+    }
+    importTypes.add("io.avaje.jsonb.JsonAdapter");
+    importTypes.add(Constants.JSONB);
+    importTypes.add("io.avaje.jsonb.JsonReader");
+    importTypes.add("io.avaje.jsonb.JsonWriter");
+    importTypes.add("io.avaje.jsonb.Types");
+    importTypes.add("io.avaje.jsonb.spi.Generated");
+    importTypes.add("io.avaje.jsonb.spi.PropertyNames");
     return importTypes;
   }
 
   private void addImported(Set<String> importTypes) {
-    if (Util.validImportType(type)) {
-      importTypes.add(type);
-    }
+    importTypes.add(type);
   }
 
   @Override
-  public void writeImports(Append writer) {
+  public void writeImports(Append writer, String packageName) {
     for (final String importType : importTypes()) {
-      if (Util.validImportType(importType)) {
+      if (Util.validImportType(importType, packageName)) {
         writer.append("import %s;", Util.sanitizeImports(importType)).eol();
       }
     }
@@ -214,7 +221,6 @@ final class ClassReader implements BeanReader {
   @Override
   public void writeFields(Append writer) {
     writer.append("  // naming convention %s", namingConvention).eol();
-
     for (final FieldReader allField : allFields) {
       allField.writeDebug(writer);
     }
@@ -228,7 +234,7 @@ final class ClassReader implements BeanReader {
       uniqueTypes.add("String");
     }
     for (final FieldReader allField : allFields) {
-      if (allField.include() && !allField.isRaw() && uniqueTypes.add(allField.adapterShortType())) {
+      if (includeField(allField, uniqueTypes)) {
         allField.writeField(writer);
       }
     }
@@ -239,6 +245,17 @@ final class ClassReader implements BeanReader {
     }
     writer.append("  private final PropertyNames names;").eol();
     writer.eol();
+  }
+
+  private static boolean includeField(FieldReader allField, Set<String> uniqueTypes) {
+    return allField.include()
+      && !allField.isRaw()
+      && includeFieldUniqueType(allField, uniqueTypes);
+  }
+
+  private static boolean includeFieldUniqueType(FieldReader allField, Set<String> uniqueTypes) {
+    return allField.hasCustomSerializer() && uniqueTypes.add(allField.adapterFieldName())
+      || !allField.hasCustomSerializer() && uniqueTypes.add(allField.adapterShortType());
   }
 
   @Override
@@ -253,12 +270,12 @@ final class ClassReader implements BeanReader {
       uniqueTypes.add("String");
     }
     for (final FieldReader allField : allFields) {
-      if (allField.include() && !allField.isRaw() && uniqueTypes.add(allField.adapterShortType())) {
+      if (includeField(allField, uniqueTypes)) {
         if (hasSubTypes) {
           final var isCommonDiffType =
-              allFields.stream()
-                  .filter(s -> s.fieldName().equals(allField.fieldName()))
-                  .anyMatch(f -> !allField.adapterShortType().equals(f.adapterShortType()));
+            allFields.stream()
+              .filter(s -> s.fieldName().equals(allField.fieldName()))
+              .anyMatch(f -> !allField.adapterShortType().equals(f.adapterShortType()));
           isCommonFieldMap.put(allField.fieldName(), isCommonDiffType);
         }
         allField.writeConstructor(writer);
@@ -464,23 +481,32 @@ final class ClassReader implements BeanReader {
 
   private void writeJsonBuildResult(Append writer, String varName) {
     writer.append("    // build and return %s", shortName).eol();
-      if (constructor == null) {
-        writer.append("    %s _$%s = new %s(", shortName, varName, shortName);
-      } else {
-        writer.append("    %s _$%s = " + constructor.creationString(), shortName, varName);
-        final List<MethodReader.MethodParam> params = constructor.getParams();
-        for (int i = 0, size = params.size(); i < size; i++) {
-          if (i > 0) {
-            writer.append(", ");
-          }
-          final var name = params.get(i).name();
-          // append increasing numbers to constructor params sharing names with other subtypes
-          final var frequency = frequencyMap.compute(name, (k, v) -> v == null ? 0 : v + 1);
-          // assuming name matches field here?
-          writer.append(constructorParamName(name + (frequency == 0 ? "" : frequency.toString())));
+    if (constructor == null) {
+      writer.append("    %s _$%s = new %s(", shortName, varName, shortName);
+    } else {
+      writer.append("    %s _$%s = " + constructor.creationString(), shortName, varName);
+      final List<MethodReader.MethodParam> params = constructor.getParams();
+      for (int i = 0, size = params.size(); i < size; i++) {
+        if (i > 0) {
+          writer.append(", ");
         }
+
+        final var paramName = params.get(i).name();
+        var name =
+          allFields.stream()
+            .filter(FieldReader::isConstructorParam)
+            .filter(f -> f.propertyName().equals(paramName) || f.fieldName().equals(paramName))
+            .map(FieldReader::fieldName)
+            .findFirst()
+            .orElse(paramName);
+
+        // append increasing numbers to constructor params sharing names with other subtypes
+        final var frequency = frequencyMap.compute(name, (k, v) -> v == null ? 0 : v + 1);
+        // assuming name matches field here?
+        writer.append(constructorParamName(name + (frequency == 0 ? "" : frequency.toString())));
       }
-      writer.append(");").eol();
+    }
+    writer.append(");").eol();
     for (final FieldReader allField : allFields) {
       if (allField.includeFromJson()) {
         frequencyMap.compute(allField.fieldName(), (k, v) -> v == null ? 0 : v + 1);
@@ -566,23 +592,23 @@ final class ClassReader implements BeanReader {
         final var isCommonFieldDiffType = isCommonFieldMap.get(name);
         if (isCommonFieldDiffType == null || !isCommonFieldDiffType) {
           allField.writeFromJsonSwitch(
-              writer,
-              defaultConstructor,
-              varName,
-              caseInsensitiveKeys,
-              allFields.stream()
-                  .filter(x -> x.fieldName().equals(name))
-                  .flatMap(f -> f.aliases().stream())
-                  .collect(toList()));
+            writer,
+            defaultConstructor,
+            varName,
+            caseInsensitiveKeys,
+            allFields.stream()
+              .filter(x -> x.fieldName().equals(name))
+              .flatMap(f -> f.aliases().stream())
+              .collect(toList()));
         } else {
           // if subclass shares a field name with another subclass
           // write a special case statement
           writeSubTypeCase(
-              name,
-              writer,
-              allFields.stream().filter(x -> x.fieldName().equals(name)).collect(toList()),
-              defaultConstructor,
-              varName);
+            name,
+            writer,
+            allFields.stream().filter(x -> x.fieldName().equals(name)).collect(toList()),
+            defaultConstructor,
+            varName);
         }
 
       } else
@@ -605,8 +631,7 @@ final class ClassReader implements BeanReader {
   private void writeSubTypeCase(String name, Append writer, List<FieldReader> commonFields, boolean defaultConstructor, String varName) {
     writer.append("        case \"%s\":", name).eol();
     // get all possible aliases of this field from the subtypes
-    for (final String alias :
-        commonFields.stream().map(FieldReader::aliases).findFirst().orElseGet(List::of)) {
+    for (final String alias : commonFields.stream().map(FieldReader::aliases).findFirst().orElseGet(List::of)) {
       final String propertyKey = caseInsensitiveKeys ? alias.toLowerCase() : alias;
       writer.append("        case \"%s\":", propertyKey).eol();
     }
