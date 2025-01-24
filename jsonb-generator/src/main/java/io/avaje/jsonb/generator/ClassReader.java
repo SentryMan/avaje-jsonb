@@ -180,18 +180,18 @@ final class ClassReader implements BeanReader {
     if (implementation != null) {
       implementation.addImported(importTypes);
     }
-
     if (supportsViewBuilder()) {
-      importTypes.add("io.avaje.jsonb.spi.ViewBuilder");
-      importTypes.add("io.avaje.jsonb.spi.ViewBuilderAware");
+      importTypes.add("io.avaje.json.view.ViewBuilder");
+      importTypes.add("io.avaje.json.view.ViewBuilderAware");
     }
-    importTypes.add("io.avaje.jsonb.JsonAdapter");
+    importTypes.add("io.avaje.json.JsonAdapter");
+    importTypes.add("io.avaje.json.PropertyNames");
+    importTypes.add("io.avaje.json.JsonReader");
+    importTypes.add("io.avaje.json.JsonWriter");
+    importTypes.add("io.avaje.jsonb.AdapterFactory");
     importTypes.add(Constants.JSONB);
-    importTypes.add("io.avaje.jsonb.JsonReader");
-    importTypes.add("io.avaje.jsonb.JsonWriter");
     importTypes.add("io.avaje.jsonb.Types");
     importTypes.add("io.avaje.jsonb.spi.Generated");
-    importTypes.add("io.avaje.jsonb.spi.PropertyNames");
     return importTypes;
   }
 
@@ -340,6 +340,7 @@ final class ClassReader implements BeanReader {
 
   private void writeView(Append writer) {
     writer.eol();
+    writer.append("  @SuppressWarnings(\"unchecked\")").eol();
     writer.append("  @Override").eol();
     writer.append("  public boolean isViewBuilderAware() {").eol();
     writer.append("    return true;").eol();
@@ -461,7 +462,11 @@ final class ClassReader implements BeanReader {
       writer.eol().append("    String type = null;").eol();
     }
     if (unmappedField != null) {
-      writer.append("    Map<String, Object> unmapped = new LinkedHashMap<>();").eol();
+      if (unmappedJsonNodeType()) {
+        writer.append("    var unmapped = io.avaje.json.node.JsonObject.create();").eol();
+      } else {
+        writer.append("    var unmapped = new java.util.LinkedHashMap<String, Object>();").eol();
+      }
     }
     writeFromJsonSwitch(writer, directLoad, varName);
     writer.eol();
@@ -477,6 +482,10 @@ final class ClassReader implements BeanReader {
     }
     writer.append("    return _$%s;", varName).eol();
     writer.append("  }").eol();
+  }
+
+  private boolean unmappedJsonNodeType() {
+    return unmappedField.type().topType().startsWith("io.avaje.json.node.");
   }
 
   private void writeJsonBuildResult(Append writer, String varName) {
@@ -617,8 +626,13 @@ final class ClassReader implements BeanReader {
     writer.append("        default:").eol();
     final String unmappedFieldName = caseInsensitiveKeys ? "origFieldName" : "fieldName";
     if (unmappedField != null) {
-      writer.append("          Object value = objectJsonAdapter.fromJson(reader);").eol();
-      writer.append("          unmapped.put(%s, value);", unmappedFieldName).eol();
+      if (unmappedJsonNodeType()) {
+        writer.append("          var value = jsonNodeAdapter.fromJson(reader);").eol();
+        writer.append("          unmapped.add(%s, value);", unmappedFieldName).eol();
+      } else {
+        writer.append("          var value = objectJsonAdapter.fromJson(reader);").eol();
+        writer.append("          unmapped.put(%s, value);", unmappedFieldName).eol();
+      }
     } else {
       writer.append("          reader.unmappedField(%s);", unmappedFieldName).eol();
       writer.append("          reader.skipValue();").eol();

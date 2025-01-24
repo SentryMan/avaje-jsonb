@@ -4,14 +4,20 @@
   <parent>
     <groupId>io.avaje</groupId>
     <artifactId>avaje-jsonb-parent</artifactId>
-    <version>2.4-SNAPSHOT</version>
+    <version>3.0-RC6</version>
   </parent>
 
   <artifactId>avaje-jsonb</artifactId>
-  <name>jsonb</name>
-  <description>avaje-jsonb json streaming and binding library using source code generation</description>
+  <name>avaje jsonb</name>
+  <description>JSON Streaming Generation and data binding library using source code generation</description>
 
   <dependencies>
+
+    <dependency>
+      <groupId>io.avaje</groupId>
+      <artifactId>avaje-json-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
      <dependency>
       <groupId>io.avaje</groupId>
@@ -19,14 +25,6 @@
       <version>${project.version}</version>
     </dependency>
 
-    <dependency>
-      <groupId>io.helidon.webserver</groupId>
-      <artifactId>helidon-webserver</artifactId>
-      <version>4.1.0</version>
-      <scope>provided</scope>
-      <optional>true</optional>
-    </dependency>    
-    
     <dependency>
       <groupId>io.avaje</groupId>
       <artifactId>avaje-spi-service</artifactId>

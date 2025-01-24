@@ -1,8 +1,7 @@
 package org.example.other;
 
-import io.avaje.jsonb.JsonAdapter;
 import io.avaje.jsonb.JsonType;
-import io.avaje.jsonb.JsonWriter;
+import io.avaje.json.*;
 import io.avaje.jsonb.Jsonb;
 import io.avaje.jsonb.Types;
 
@@ -29,6 +28,24 @@ class ObjectAdapterTest {
 
     String asJson = objectType.toJson(null);
     assertThat(asJson).isEqualTo("");
+  }
+
+  @Test
+  void nullInMap() {
+    Object val = objectType.fromJson("{\"a\":1,\"b\":null,\"c\":3}");
+    assertThat(val).isInstanceOf(Map.class);
+
+    String asJson = objectType.toJson(null);
+    assertThat(asJson).isEqualTo("");
+  }
+
+  @Test
+  void nullInList() {
+    Object val = objectType.fromJson("[1,null,3]");
+    assertThat(val).isInstanceOf(List.class);
+
+    String asJson = objectType.toJson(val);
+    assertThat(asJson).isEqualTo("[1,3]");
   }
 
   @Test
