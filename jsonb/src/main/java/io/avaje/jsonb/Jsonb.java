@@ -154,6 +154,13 @@ public interface Jsonb {
   void toJson(Object any, JsonWriter jsonWriter);
 
   /**
+   * Write to the given jsonOutput.
+   * <p>
+   * This is a convenience method for {@code jsonb.type(Object.class).toJson(any, jsonOutput) }
+   */
+  void toJson(Object any, JsonOutput jsonOutput);
+
+  /**
    * Return the JsonType used to read and write json for the given class.
    *
    * <h3>fromJson() example</h3>
@@ -375,9 +382,21 @@ public interface Jsonb {
     Builder failOnUnknown(boolean failOnUnknown);
 
     /**
+     * Set to true to fail on NULL for primitive types. Defaults to false, where
+     * a NULL is allowed and returned as the default value of the primitive (false, 0).
+     */
+    Builder failOnNullPrimitives(boolean failOnNullPrimitives);
+
+    /**
      * Set to true for BigDecimal and BigInteger to serialise as String values rather than number values.
      */
     Builder mathTypesAsString(boolean mathTypesAsString);
+
+    /**
+     * Set to true for Calendar to serialise as String with timezone and false to serialise
+     * as UTC epoch millis. Defaults to false.
+     */
+    Builder calendarAsString(boolean calendarAsString);
 
     /**
      * Determines how byte buffers are recycled
