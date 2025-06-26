@@ -11,7 +11,7 @@
 
   <properties>
     <jmh.version>1.37</jmh.version>
-    <avaje-jsonb.version>1.8-RC4</avaje-jsonb.version>
+    <avaje-jsonb.version>1.9</avaje-jsonb.version>
     <yasson.version>2.0.2</yasson.version>
     <maven.compiler.release>17</maven.compiler.release>
     <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
@@ -52,7 +52,7 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>2.13.0</version>
+      <version>2.15.0</version>
     </dependency>
 <!--    <dependency>-->
 <!--      <groupId>org.eclipse</groupId>-->
