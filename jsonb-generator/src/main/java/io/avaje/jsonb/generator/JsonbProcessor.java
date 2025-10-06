@@ -4,12 +4,10 @@ import static io.avaje.jsonb.generator.APContext.asTypeElement;
 import static io.avaje.jsonb.generator.APContext.logError;
 import static io.avaje.jsonb.generator.APContext.logNote;
 import static io.avaje.jsonb.generator.APContext.typeElement;
-import static io.avaje.jsonb.generator.Constants.JSON;
-import static io.avaje.jsonb.generator.Constants.JSON_IMPORT;
-import static io.avaje.jsonb.generator.Constants.JSON_IMPORT_LIST;
-import static io.avaje.jsonb.generator.Constants.JSON_MIXIN;
+import static io.avaje.jsonb.generator.Constants.*;
 import static io.avaje.jsonb.generator.ProcessingContext.addImportedPrism;
 import static io.avaje.jsonb.generator.ProcessingContext.createMetaInfWriterFor;
+import static io.avaje.jsonb.generator.ValuePrism.*;
 import static java.util.stream.Collectors.joining;
 
 import java.io.IOException;
@@ -59,6 +57,7 @@ import io.avaje.prism.GenerateUtils;
   "io.avaje.spi.ServiceProvider"
 })
 public final class JsonbProcessor extends AbstractProcessor {
+
   private final Set<String> writtenTypes = new HashSet<>();
   private final Map<String, ComponentMetaData> privateMetaData = new HashMap<>();
   private final ComponentMetaData metaData = new ComponentMetaData();
@@ -116,12 +115,13 @@ public final class JsonbProcessor extends AbstractProcessor {
     }
     APContext.setProjectModuleElement(annotations, round);
     readModule();
+
+    getElements(round, CustomAdapterPrism.PRISM_TYPE).ifPresent(this::registerCustomAdapters);
     getElements(round, ValuePrism.PRISM_TYPE).ifPresent(this::writeValueAdapters);
     getElements(round, JSON).ifPresent(this::writeAdapters);
     getElements(round, JSON_MIXIN).ifPresent(this::writeAdaptersForMixInTypes);
     getElements(round, JSON_IMPORT_LIST).ifPresent(this::writeAdaptersForImportedList);
     getElements(round, JSON_IMPORT).ifPresent(this::writeAdaptersForImported);
-    getElements(round, CustomAdapterPrism.PRISM_TYPE).ifPresent(this::registerCustomAdapters);
     getElements(round, "io.avaje.spi.ServiceProvider").ifPresent(this::registerSPI);
 
     metaData.fullName(false);
@@ -140,6 +140,7 @@ public final class JsonbProcessor extends AbstractProcessor {
       var pkgPrivate = !typeElement.getModifiers().contains(Modifier.PUBLIC);
       var meta = pkgPrivate ? pkgPrivateMetaData(typeElement) : metaData;
       final var type = typeElement.getQualifiedName().toString();
+      writtenTypes.add(type);
       if (isGenericJsonAdapter(typeElement)) {
         ElementFilter.fieldsIn(typeElement.getEnclosedElements()).stream()
           .filter(isStaticFactory())
@@ -244,7 +245,10 @@ public final class JsonbProcessor extends AbstractProcessor {
     for (final String type : extraTypes) {
       if (!ignoreType(type)) {
         final TypeElement element = typeElement(type);
-        if (element != null && element.getKind() != ElementKind.ENUM) {
+        if (element != null
+            && element.getKind() != ElementKind.ENUM
+            && !JsonPrism.isPresent(element)) {
+          ProcessingContext.cascadedType(type);
           writeAdapterForType(element);
         }
       }
@@ -370,10 +374,10 @@ public final class JsonbProcessor extends AbstractProcessor {
     }
     beanReader.read();
     if (beanReader.nonAccessibleField()) {
-      if (beanReader.hasJsonAnnotation()) {
+      if (beanReader.hasJsonAnnotation() && !ProcessingContext.isCascadeType(typeElement)) {
         logError("Error JsonAdapter due to nonAccessibleField for %s ", beanReader);
       }
-      logNote("Skipped writing JsonAdapter for %s due to non accessible fields", beanReader);
+      logNote(typeElement, "Skipped writing JsonAdapter for %s due to non accessible fields", beanReader);
       return;
     }
     try {

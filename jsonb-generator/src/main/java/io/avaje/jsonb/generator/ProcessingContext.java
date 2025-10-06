@@ -11,12 +11,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
-import java.nio.file.Paths;
 import java.util.*;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.TypeMirror;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
 
@@ -26,6 +24,7 @@ final class ProcessingContext {
 
   private static final class Ctx {
     private final Map<String, JsonPrism> importedJsonMap = new HashMap<>();
+    private final Set<String> cascadeSet = new HashSet<>();
     private final Map<String, List<SubTypePrism>> importedSubtypeMap = new HashMap<>();
     private final Set<String> services = new TreeSet<>();
     private final boolean injectPresent;
@@ -131,7 +130,29 @@ final class ProcessingContext {
              .toUri()
              .toURL()
              .openStream();
-         final var buffer = new BufferedReader(new InputStreamReader(file));) {
+        final var buffer = new BufferedReader(new InputStreamReader(file)); ) {
+
+      String line;
+      while ((line = buffer.readLine()) != null) {
+        line.replaceAll("\\s", "").replace(",", "\n").lines().forEach(services::add);
+      }
+      return services;
+    } catch (Exception e) {
+      // not a critical error
+    }
+
+    try (final var file =
+           URI.create(
+               APContext.filer()
+                 .getResource(
+                   StandardLocation.CLASS_OUTPUT, "", Constants.META_INF_COMPONENT)
+                 .toUri()
+                 .toString()
+                 .replaceFirst("/classes/java/test", "/classes/java/main")
+                 .replaceFirst("/test-classes", "/classes"))
+             .toURL()
+             .openStream();
+        final var buffer = new BufferedReader(new InputStreamReader(file)); ) {
 
       String line;
       while ((line = buffer.readLine()) != null) {
@@ -141,5 +162,17 @@ final class ProcessingContext {
       // not a critical error
     }
     return services;
+  }
+
+  static void cascadedType(String type) {
+    CTX.get().cascadeSet.add(type);
+  }
+
+  static boolean isCascadeType(TypeElement type) {
+    return isCascadeType(type.getQualifiedName().toString());
+  }
+
+  static boolean isCascadeType(String type) {
+    return CTX.get().cascadeSet.contains(type);
   }
 }
