@@ -4,10 +4,12 @@ import static io.avaje.jsonb.generator.APContext.asTypeElement;
 import static io.avaje.jsonb.generator.APContext.logError;
 import static io.avaje.jsonb.generator.APContext.logNote;
 import static io.avaje.jsonb.generator.APContext.typeElement;
-import static io.avaje.jsonb.generator.Constants.*;
+import static io.avaje.jsonb.generator.Constants.JSON;
+import static io.avaje.jsonb.generator.Constants.JSON_IMPORT;
+import static io.avaje.jsonb.generator.Constants.JSON_IMPORT_LIST;
+import static io.avaje.jsonb.generator.Constants.JSON_MIXIN;
 import static io.avaje.jsonb.generator.ProcessingContext.addImportedPrism;
 import static io.avaje.jsonb.generator.ProcessingContext.createMetaInfWriterFor;
-import static io.avaje.jsonb.generator.ValuePrism.*;
 import static java.util.stream.Collectors.joining;
 
 import java.io.IOException;
@@ -41,12 +43,10 @@ import javax.lang.model.util.ElementFilter;
 import javax.tools.FileObject;
 
 import io.avaje.prism.GenerateAPContext;
-import io.avaje.prism.GenerateModuleInfoReader;
 import io.avaje.prism.GenerateUtils;
 
 @GenerateUtils
 @GenerateAPContext
-@GenerateModuleInfoReader
 @SupportedAnnotationTypes({
   CustomAdapterPrism.PRISM_TYPE,
   JSON,
@@ -68,6 +68,8 @@ public final class JsonbProcessor extends AbstractProcessor {
 
   private SimpleComponentWriter componentWriter;
   private boolean readModuleInfo;
+  private boolean generateComponent;
+  private int rounds;
 
   @Override
   public SourceVersion getSupportedSourceVersion() {
@@ -110,29 +112,39 @@ public final class JsonbProcessor extends AbstractProcessor {
 
   @Override
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment round) {
-    if (round.errorRaised()) {
+    if (generateComponent || round.errorRaised()) {
+      if (round.processingOver()) {
+        ProcessingContext.validateModule();
+        ProcessingContext.clear();
+      }
       return false;
     }
+    generateComponent = rounds++ > 0;
     APContext.setProjectModuleElement(annotations, round);
     readModule();
-
-    getElements(round, CustomAdapterPrism.PRISM_TYPE).ifPresent(this::registerCustomAdapters);
     getElements(round, ValuePrism.PRISM_TYPE).ifPresent(this::writeValueAdapters);
     getElements(round, JSON).ifPresent(this::writeAdapters);
     getElements(round, JSON_MIXIN).ifPresent(this::writeAdaptersForMixInTypes);
     getElements(round, JSON_IMPORT_LIST).ifPresent(this::writeAdaptersForImportedList);
     getElements(round, JSON_IMPORT).ifPresent(this::writeAdaptersForImported);
     getElements(round, "io.avaje.spi.ServiceProvider").ifPresent(this::registerSPI);
+    getElements(round, CustomAdapterPrism.PRISM_TYPE).ifPresent(this::registerCustomAdapters);
 
     metaData.fullName(false);
     cascadeTypes();
-    writeComponent(round.processingOver());
+    writeComponent(generateComponent);
     return false;
   }
 
   // Optional because annotations are not guaranteed to exist
   private Optional<? extends Set<? extends Element>> getElements(RoundEnvironment round, String name) {
-    return Optional.ofNullable(typeElement(name)).map(round::getElementsAnnotatedWith);
+    var op =
+      Optional.ofNullable(typeElement(name))
+        .map(round::getElementsAnnotatedWith)
+        .filter(n -> !n.isEmpty());
+    // skip generateComponent if anything needs processing in this round
+    generateComponent = generateComponent && op.isEmpty();
+    return op;
   }
 
   private void registerCustomAdapters(Set<? extends Element> elements) {
@@ -244,6 +256,8 @@ public final class JsonbProcessor extends AbstractProcessor {
     }
     for (final String type : extraTypes) {
       if (!ignoreType(type)) {
+        // skip generateComponent for this round due to cascade
+        generateComponent = false;
         final TypeElement element = typeElement(type);
         if (element != null
             && element.getKind() != ElementKind.ENUM
@@ -326,11 +340,8 @@ public final class JsonbProcessor extends AbstractProcessor {
           writer.write();
         }
         writeMetaInf();
-        ProcessingContext.validateModule();
       } catch (final IOException e) {
         logError("Error writing component", e);
-      } finally {
-        ProcessingContext.clear();
       }
     }
   }

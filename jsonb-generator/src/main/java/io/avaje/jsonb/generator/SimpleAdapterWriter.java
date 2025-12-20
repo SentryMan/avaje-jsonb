@@ -57,7 +57,7 @@ final class SimpleAdapterWriter {
   private void writeFactory() {
     if (genericParamsCount > 0) {
       String typeName = adapterShortName;
-      final int nestedIndex = adapterShortName.indexOf("$");
+      final int nestedIndex = adapterShortName.lastIndexOf("$");
       if (nestedIndex != -1) {
         typeName = typeName.substring(nestedIndex + 1);
       }
@@ -130,6 +130,8 @@ final class SimpleAdapterWriter {
   }
 
   private void writePackage() {
-    writer.append("package %s;", adapterPackage).eol().eol();
+    if (!adapterPackage.isBlank()) {
+      writer.append("package %s;", adapterPackage).eol().eol();
+    }
   }
 }

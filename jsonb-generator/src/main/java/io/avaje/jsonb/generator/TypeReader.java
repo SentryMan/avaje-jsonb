@@ -162,9 +162,12 @@ final class TypeReader {
       for (var param : constructor.getParams()) {
         var name = param.name();
         var element = param.element();
-        var matchingField = localFields.stream()
-          .filter(f -> f.propertyName().equals(name) || f.fieldName().equals(name))
-          .findFirst();
+        var aliases = aliasesForParam(element);
+
+        var matchingField =
+          localFields.stream()
+            .filter(field -> isMatchParam(field, name, aliases))
+            .findFirst();
         matchingField.ifPresentOrElse(f -> f.readParam(element), () -> readField(element, localFields));
       }
     }
@@ -188,6 +191,20 @@ final class TypeReader {
         }
       }
     }
+  }
+
+  private static boolean isMatchParam(FieldReader field, String name, Set<String> aliases) {
+    return field.propertyName().equals(name)
+      || field.fieldName().equals(name)
+      || field.aliases().contains(name)
+      || aliases.contains(field.propertyName())
+      || aliases.contains(field.fieldName());
+  }
+
+  private static Set<String> aliasesForParam(VariableElement element) {
+    return AliasPrism.getOptionalOn(element).map(AliasPrism::value).stream()
+      .flatMap(List::stream)
+      .collect(Collectors.toSet());
   }
 
   private void readField(Element element, List<FieldReader> localFields) {
@@ -358,8 +375,15 @@ final class TypeReader {
         field.setUseGetterAddAll();
       } else if (ProcessingContext.isCascadeType(baseType)) {
         nonAccessibleField = true;
-        logWarn(field.element(), errorContext + baseType + ", non public field %s with no matching setter or constructor?", field.fieldName());
-
+        var module = APContext.getProjectModuleElement();
+        if (!module.isUnnamed() && module.equals(APContext.elements().getModuleOf(baseType))) {
+          logWarn(
+              field.element(),
+              "%s%s, non public field %s with no matching setter or constructor?",
+              errorContext,
+              baseType,
+              field.fieldName());
+        }
       } else {
         logError(field.element(), errorContext + baseType + ", non public field %s with no matching setter or constructor?", field.fieldName());
       }
