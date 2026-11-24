@@ -64,8 +64,7 @@ class JParserFieldHashTest {
       }
       String content = sb.append('}').toString();
 
-      JParser parser = new JParser(new char[100], new byte[100], 100, JParser.DoublePrecision.HIGH,
-        JParser.UnknownNumberParsing.BIGDECIMAL, 100, 1000);
+      JParser parser = new JParser(new char[100], new byte[100], 100, JParser.UnknownNumberParsing.BIGDECIMAL, 100, 1000);
       parser.process(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)));
       JsonReadAdapter reader = new JsonReadAdapter(parser, Recyclers.ThreadLocalPool.shared(), true, true);
 
@@ -86,8 +85,7 @@ class JParserFieldHashTest {
   }
 
   private static JsonReadAdapter reader(byte[] content) {
-    JParser parser = new JParser(new char[100], new byte[1000], 1000, JParser.DoublePrecision.HIGH,
-      JParser.UnknownNumberParsing.BIGDECIMAL, 100, 1000);
+    JParser parser = new JParser(new char[100], new byte[1000], 1000, JParser.UnknownNumberParsing.BIGDECIMAL, 100, 1000);
     parser.process(content, content.length);
     return new JsonReadAdapter(parser, Recyclers.ThreadLocalPool.shared(), true, true);
   }
@@ -100,8 +98,7 @@ class JParserFieldHashTest {
     assertThat(byteReader.lastFieldName()).isNull();
     byteReader.endObject();
 
-    JParser streamParser = new JParser(new char[100], new byte[100], 100, JParser.DoublePrecision.HIGH,
-      JParser.UnknownNumberParsing.BIGDECIMAL, 100, 1000);
+    JParser streamParser = new JParser(new char[100], new byte[100], 100, JParser.UnknownNumberParsing.BIGDECIMAL, 100, 1000);
     streamParser.process(new ByteArrayInputStream(content));
     JsonReadAdapter streamReader = new JsonReadAdapter(streamParser, Recyclers.ThreadLocalPool.shared(), true, true);
     streamReader.beginObject();
@@ -111,8 +108,7 @@ class JParserFieldHashTest {
 
   @Test
   void lastFieldName_resetAcrossCloseAndReuse() {
-    JParser parser = new JParser(new char[100], new byte[1000], 1000, JParser.DoublePrecision.HIGH,
-      JParser.UnknownNumberParsing.BIGDECIMAL, 100, 1000);
+    JParser parser = new JParser(new char[100], new byte[1000], 1000, JParser.UnknownNumberParsing.BIGDECIMAL, 100, 1000);
 
     // 1) Unescaped field sets nameStart/nameEnd > 0; close() and process() must reset safely
     byte[] first = "{\"   \" : 0, \"first\":1}".getBytes(StandardCharsets.UTF_8);
@@ -163,8 +159,7 @@ class JParserFieldHashTest {
 
   @Test
   void lastFieldName_staleLastNameAfterProcess() {
-    JParser parser = new JParser(new char[100], new byte[1000], 1000, JParser.DoublePrecision.HIGH,
-      JParser.UnknownNumberParsing.BIGDECIMAL, 100, 1000);
+    JParser parser = new JParser(new char[100], new byte[1000], 1000, JParser.UnknownNumberParsing.BIGDECIMAL, 100, 1000);
 
     byte[] escaped = "{\"fir\\u0073t\":1}".getBytes(StandardCharsets.UTF_8);
     parser.process(escaped, escaped.length);

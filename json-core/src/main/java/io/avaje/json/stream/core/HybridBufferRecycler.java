@@ -229,7 +229,6 @@ final class HybridBufferRecycler implements BufferRecycler {
         new char[Recyclers.PARSER_CHAR_BUFFER_SIZE],
         new byte[Recyclers.PARSER_BUFFER_SIZE],
         0,
-        JParser.DoublePrecision.DEFAULT,
         JParser.UnknownNumberParsing.BIGDECIMAL,
         Recyclers.DEFAULT_PARSER_LIMITS.maxNumberDigits(),
         Recyclers.DEFAULT_PARSER_LIMITS.maxStringBuffer(),

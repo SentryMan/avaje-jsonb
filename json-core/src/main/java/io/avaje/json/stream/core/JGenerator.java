@@ -79,7 +79,6 @@ class JGenerator implements JsonGenerator {
     ESCAPE_CODES['\\'] = '\\';
   }
 
-  private final Grisu3.FastDtoaBuilder doubleBuilder = new Grisu3.FastDtoaBuilder();
   private final int largeStringMax;
   private final int largeAsciiMax;
   private byte[] buffer;
@@ -402,14 +401,11 @@ class JGenerator implements JsonGenerator {
       writeAscii(DOUBLE_NAN);
     } else if (value == 0.0) {
       writeAscii(DOUBLE_ZERO);
-    } else if (Grisu3.tryConvert(value, doubleBuilder)) {
-      if (position + 24 >= buffer.length) {
-        enlargeOrFlush(position, 24);
-      }
-      final int len = doubleBuilder.copyTo(buffer, position);
-      position += len;
     } else {
-      writeAscii(Double.toString(value));
+      if (position + RyuDouble.MAX_LENGTH >= buffer.length) {
+        enlargeOrFlush(position, RyuDouble.MAX_LENGTH);
+      }
+      position += RyuDouble.writeDouble(value, buffer, position);
     }
   }
 

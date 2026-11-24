@@ -136,8 +136,7 @@ class JParserKnownStringTest {
   }
 
   private static JsonReadAdapter streamReader(String content) {
-    JParser parser = new JParser(new char[100], new byte[100], 100, JParser.DoublePrecision.HIGH,
-      JParser.UnknownNumberParsing.BIGDECIMAL, 100, 1000);
+    JParser parser = new JParser(new char[100], new byte[100], 100, JParser.UnknownNumberParsing.BIGDECIMAL, 100, 1000);
     parser.process(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)));
     return new JsonReadAdapter(parser, Recyclers.ThreadLocalPool.shared(), true, true);
   }

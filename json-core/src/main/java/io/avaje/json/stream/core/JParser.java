@@ -16,25 +16,11 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Arrays;
-import java.util.Formatter;
 
 /**
  * The json parsing implementation.
  */
 class JParser implements JsonParser {
-
-  enum DoublePrecision {
-    EXACT(0),
-    HIGH(1),
-    DEFAULT(3),
-    LOW(4);
-
-    final int level;
-
-    DoublePrecision(int level) {
-      this.level = level;
-    }
-  }
 
   enum UnknownNumberParsing {
     LONG_AND_BIGDECIMAL,
@@ -85,9 +71,8 @@ class JParser implements JsonParser {
   private final ArrayDeque<JsonNames> nameStack = new ArrayDeque<>();
   private JsonNames currentNames;
 
-  final DoublePrecision doublePrecision;
-  final int doubleLengthLimit;
   final UnknownNumberParsing unknownNumbers;
+  private RyuParser ryuParser;
   int maxNumberDigits;
   private int maxStringBuffer;
   private int maxRawBuffer;
@@ -96,18 +81,16 @@ class JParser implements JsonParser {
     final char[] tmp,
     final byte[] buffer,
     final int length,
-    final DoublePrecision doublePrecision,
     final UnknownNumberParsing unknownNumbers,
     final int maxNumberDigits,
     final int maxStringBuffer) {
-    this(tmp, buffer, length, doublePrecision, unknownNumbers, maxNumberDigits, maxStringBuffer, maxStringBuffer);
+    this(tmp, buffer, length, unknownNumbers, maxNumberDigits, maxStringBuffer, maxStringBuffer);
   }
 
   public JParser(
     final char[] tmp,
     final byte[] buffer,
     final int length,
-    final DoublePrecision doublePrecision,
     final UnknownNumberParsing unknownNumbers,
     final int maxNumberDigits,
     final int maxStringBuffer,
@@ -117,12 +100,10 @@ class JParser implements JsonParser {
     this.length = length;
     this.bufferLenWithExtraSpace = buffer.length - 38; // maximum padding is for uuid
     this.chars = tmp;
-    this.doublePrecision = doublePrecision;
     this.unknownNumbers = unknownNumbers;
     this.maxNumberDigits = maxNumberDigits;
     this.maxStringBuffer = ParserLimits.capMaxStringBuffer(maxStringBuffer);
     this.maxRawBuffer = maxRawBuffer;
-    this.doubleLengthLimit = 15 + doublePrecision.level;
     this.originalBuffer = buffer;
     this.originalBufferLenWithExtraSpace = bufferLenWithExtraSpace;
   }
@@ -1191,7 +1172,13 @@ class JParser implements JsonParser {
   }
 
   private final StringBuilder error = new StringBuilder(0);
-  private final Formatter errorFormatter = new Formatter(error);
+
+  final RyuParser ryuParser() {
+    if (ryuParser == null) {
+      ryuParser = new RyuParser();
+    }
+    return ryuParser;
+  }
 
   final JsonDataException newParseError(final String description) {
     error.setLength(0);
@@ -1227,14 +1214,6 @@ class JParser implements JsonParser {
       error.append(" ");
     }
     error.append(description);
-    error.append(" ");
-    positionDescription(offset, error);
-    return new JsonDataException(errorMessage());
-  }
-
-  final JsonDataException newParseErrorFormat(final String description, final int offset, final String extraFormat, Object... args) {
-    error.setLength(0);
-    errorFormatter.format(extraFormat, args);
     error.append(" ");
     positionDescription(offset, error);
     return new JsonDataException(errorMessage());

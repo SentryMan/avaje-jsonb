@@ -22,8 +22,7 @@ class JParserStreamNameTest {
       String padKey = "p".repeat(pad);
       String content = "{\"m\":{\"" + padKey + "\":0,\"café\":1,\"日本\":2,\"😀\":3},\"after\":4}";
 
-      JParser parser = new JParser(new char[100], new byte[100], 100, JParser.DoublePrecision.HIGH,
-        JParser.UnknownNumberParsing.BIGDECIMAL, 100, 1000);
+      JParser parser = new JParser(new char[100], new byte[100], 100, JParser.UnknownNumberParsing.BIGDECIMAL, 100, 1000);
       parser.process(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)));
       JsonReadAdapter reader = new JsonReadAdapter(parser, Recyclers.ThreadLocalPool.shared(), true, true);
 
@@ -56,8 +55,7 @@ class JParserStreamNameTest {
       String padKey = "p".repeat(pad);
       String content = "{\"m\":{\"" + padKey + "\":0,\"" + raw[0] + "\":1,\"" + raw[1] + "\":2,\"" + raw[2] + "\":3},\"after\":4}";
 
-      JParser parser = new JParser(new char[100], new byte[100], 100, JParser.DoublePrecision.HIGH,
-        JParser.UnknownNumberParsing.BIGDECIMAL, 100, 1000);
+      JParser parser = new JParser(new char[100], new byte[100], 100, JParser.UnknownNumberParsing.BIGDECIMAL, 100, 1000);
       parser.process(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)));
       JsonReadAdapter reader = new JsonReadAdapter(parser, Recyclers.ThreadLocalPool.shared(), true, true);
 
@@ -84,8 +82,7 @@ class JParserStreamNameTest {
       String padKey = "p".repeat(pad);
       String content = "{\"" + padKey + "\":0,\"after\":1}";
 
-      JParser parser = new JParser(new char[100], new byte[100], 100, JParser.DoublePrecision.HIGH,
-        JParser.UnknownNumberParsing.BIGDECIMAL, 100, 1000);
+      JParser parser = new JParser(new char[100], new byte[100], 100, JParser.UnknownNumberParsing.BIGDECIMAL, 100, 1000);
       parser.process(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)));
       JsonReadAdapter reader = new JsonReadAdapter(parser, Recyclers.ThreadLocalPool.shared(), true, true);
 

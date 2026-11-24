@@ -12,7 +12,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class JParserTest {
 
-  final JParser.DoublePrecision doublePrecision = JParser.DoublePrecision.HIGH;
   final JParser.UnknownNumberParsing unknownNumbers = JParser.UnknownNumberParsing.BIGDECIMAL;
   final int maxNumberDigits = 100;
   final int maxStringBuffer = 1000;
@@ -269,6 +268,6 @@ class JParserTest {
   private JParser newParser(int len, int maxStringBuffer, int maxRawBuffer) {
     final char[] tmp = new char[len];
     final byte[] buffer = new byte[len];
-    return new JParser(tmp, buffer, buffer.length, doublePrecision, unknownNumbers, maxNumberDigits, maxStringBuffer, maxRawBuffer);
+    return new JParser(tmp, buffer, buffer.length, unknownNumbers, maxNumberDigits, maxStringBuffer, maxRawBuffer);
   }
 }

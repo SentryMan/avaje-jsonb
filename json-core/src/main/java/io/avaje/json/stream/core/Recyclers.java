@@ -44,7 +44,6 @@ final class Recyclers {
         ch,
         by,
         0,
-        JParser.DoublePrecision.DEFAULT,
         JParser.UnknownNumberParsing.BIGDECIMAL,
         limits.maxNumberDigits(),
         limits.maxStringBuffer(),

@@ -151,6 +151,106 @@ class NumberParserDoubleTest {
   }
 
   @Test
+  void readDouble_randomFullPrecision_matchJdk() {
+    final var r = new SplittableRandom(43);
+    final List<String> bad = new ArrayList<>();
+    for (var i = 0; i < 200_000; i++) {
+      final var unit = Double.toString(r.nextDouble());
+      if (Double.compare(readDouble(unit), Double.parseDouble(unit)) != 0) bad.add(unit);
+      // any finite bit pattern, including subnormals and extreme exponents
+      final var d = Double.longBitsToDouble(r.nextLong() & 0x7FEF_FFFF_FFFF_FFFFL);
+      final var bits = Double.toString(r.nextBoolean() ? d : -d);
+      if (Double.compare(readDouble(bits), Double.parseDouble(bits)) != 0) bad.add(bits);
+    }
+    assertThat(bad).isEmpty();
+  }
+
+  @Test
+  void readDouble_randomDigitStrings_matchJdk() {
+    final var r = new SplittableRandom(44);
+    final List<String> bad = new ArrayList<>();
+    for (var i = 0; i < 100_000; i++) {
+      final var sb = new StringBuilder();
+      if (r.nextBoolean()) sb.append('-');
+      sb.append(1 + r.nextInt(9));
+      final var intDigits = r.nextInt(25);
+      for (var j = 0; j < intDigits; j++) sb.append(r.nextInt(10));
+      final var fracDigits = r.nextInt(25);
+      if (fracDigits > 0) {
+        sb.append('.');
+        for (var j = 0; j < fracDigits; j++) sb.append(r.nextInt(10));
+      }
+      if (r.nextBoolean()) sb.append('e').append(r.nextInt(700) - 350);
+      final var s = sb.toString();
+      if (Double.compare(readDouble(s), Double.parseDouble(s)) != 0) bad.add(s);
+    }
+    assertThat(bad).isEmpty();
+  }
+
+  @Test
+  void readDouble_hardCases_matchJdk() {
+    final List<String> bad = new ArrayList<>();
+    for (final String number :
+        new String[] {
+          // halfway between two doubles: ties to even
+          "9007199254740993",
+          "9007199254740995",
+          "9007199254740993.0000000000000000000000001",
+          "2.4703282292062327e-324",
+          "2.4703282292062328e-324",
+          "1.7976931348623157e308",
+          "1.7976931348623158e308",
+          "1.7976931348623159e308",
+          "1e309",
+          "-1e309",
+          "1e-400",
+          "-1e-400",
+          "2.2250738585072011e-308",
+          "2.2250738585072012e-308",
+          "4.9406564584124654e-324",
+          "0.000000000000000000000000000000000000000000001",
+          "123456789012345678901234567890",
+          "0.1000000000000000055511151231257827021181583404541015625",
+          "0.1000000000000000055511151231257827021181583404541015624",
+          "0.1000000000000000055511151231257827021181583404541015626",
+          "7.2057594037927933e16",
+          "1e10000",
+          "1e-10000",
+          "00.5",
+          "1.e5"
+        }) {
+      final var expected = Double.parseDouble(number);
+      final var actual = readDouble(number);
+      if (Double.compare(actual, expected) != 0) bad.add(number + " -> " + actual + " expected " + expected);
+    }
+    assertThat(bad).isEmpty();
+  }
+
+  @Test
+  void fullPrecisionAcrossStreamBufferBoundary() {
+    final var sb = new StringBuilder("[");
+    final List<Double> expected = new ArrayList<>();
+    final var r = new SplittableRandom(8);
+    for (var i = 0; i < 20_000; i++) {
+      final var d = r.nextDouble() * Math.pow(10, r.nextInt(40) - 20);
+      if (i > 0) sb.append(',');
+      sb.append(d);
+      expected.add(d);
+    }
+    sb.append(']');
+    final var bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
+    final List<Double> actual = new ArrayList<>();
+    try (var reader = stream.reader(new ByteArrayInputStream(bytes))) {
+      reader.beginArray();
+      while (reader.hasNextElement()) {
+        actual.add(reader.readDouble());
+      }
+      reader.endArray();
+    }
+    assertThat(actual).isEqualTo(expected);
+  }
+
+  @Test
   void readInt_valid() {
     for (final String number :
         new String[] {

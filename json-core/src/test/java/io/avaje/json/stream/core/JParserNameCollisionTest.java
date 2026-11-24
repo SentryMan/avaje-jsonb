@@ -114,8 +114,7 @@ class JParserNameCollisionTest {
   void nextFieldHash_streamAcrossBufferBoundary() {
     for (int pad = 0; pad < 150; pad++) {
       String json = "{\"" + "p".repeat(pad) + "\":0,\"admin\":1,\"6ktbvb\":2,\"café\":3,\"6ktbvb\":4}";
-      JParser parser = new JParser(new char[100], new byte[64], 64, JParser.DoublePrecision.HIGH,
-        JParser.UnknownNumberParsing.BIGDECIMAL, 100, 1000);
+      JParser parser = new JParser(new char[100], new byte[64], 64, JParser.UnknownNumberParsing.BIGDECIMAL, 100, 1000);
       parser.process(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)));
       JsonReadAdapter reader = new JsonReadAdapter(parser, Recyclers.ThreadLocalPool.shared(), true, true, true);
       reader.beginObject();
@@ -131,8 +130,7 @@ class JParserNameCollisionTest {
   @Test
   void nextFieldHash_notStrict_matchesByHashOnly() {
     byte[] content = "{\"6ktbvb\":1}".getBytes(StandardCharsets.UTF_8);
-    JParser parser = new JParser(new char[100], new byte[1000], 1000, JParser.DoublePrecision.HIGH,
-      JParser.UnknownNumberParsing.BIGDECIMAL, 100, 1000);
+    JParser parser = new JParser(new char[100], new byte[1000], 1000, JParser.UnknownNumberParsing.BIGDECIMAL, 100, 1000);
     parser.process(content, content.length);
     JsonReadAdapter reader = new JsonReadAdapter(parser, Recyclers.ThreadLocalPool.shared(), true, true);
     reader.beginObject();
@@ -161,8 +159,7 @@ class JParserNameCollisionTest {
 
   private static JsonReadAdapter reader(String json, boolean strictPropertyNames) {
     byte[] content = json.getBytes(StandardCharsets.UTF_8);
-    JParser parser = new JParser(new char[100], new byte[1000], 1000, JParser.DoublePrecision.HIGH,
-      JParser.UnknownNumberParsing.BIGDECIMAL, 100, 1000);
+    JParser parser = new JParser(new char[100], new byte[1000], 1000, JParser.UnknownNumberParsing.BIGDECIMAL, 100, 1000);
     parser.process(content, content.length);
     return new JsonReadAdapter(parser, Recyclers.ThreadLocalPool.shared(), true, true, strictPropertyNames);
   }
